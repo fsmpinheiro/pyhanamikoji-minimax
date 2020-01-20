@@ -2,6 +2,24 @@ import random
 import itertools
 
 
+def join_tuples(h, g):
+    return tuple(''.join(h) + ''.join(g))
+
+
+def flatten(x):
+    output = []
+
+    def flatten_tuple(t):
+        for i in t:
+            if type(i) == tuple:
+                flatten_tuple(i)
+            else:
+                output.append(i)
+
+    flatten_tuple(x)
+    return tuple(output)
+
+
 def choose_from_string(string: str, n: int):
     """ Choose a card from a string. Returns the choice and what remains after choosing. """
 
@@ -39,7 +57,7 @@ def get_secret_options(cards_in_hand):
     choosing the Secret action.
 
     """
-    return set(itertools.combinations(cards_in_hand, 1))
+    return tuple(set(itertools.combinations(cards_in_hand, 1)))
 
 
 def get_burn_options(cards_in_hand):
@@ -47,7 +65,7 @@ def get_burn_options(cards_in_hand):
     choosing the Burn action.
 
     """
-    return set(itertools.combinations(cards_in_hand, 2))
+    return tuple(set(itertools.combinations(cards_in_hand, 2)))
 
 
 def get_gift_options(cards_in_hand):
@@ -55,7 +73,7 @@ def get_gift_options(cards_in_hand):
     choosing the Gift action.
 
     """
-    return set(itertools.combinations(cards_in_hand, 3))
+    return tuple(set(itertools.combinations(cards_in_hand, 3)))
 
 
 def get_comp_options(cards_in_hand):
@@ -80,7 +98,12 @@ def get_comp_options(cards_in_hand):
             remainder = neg_intersect(chosen_cards, div)
             bundles.append(tuple(sorted((div, remainder))))
 
-        unique_bundles = set(bundles)
+        unique_bundles = tuple(set(bundles))
         all_bundling_options.append(unique_bundles)
 
-    return all_bundling_options
+    options_unwrapped = []
+    for i in all_bundling_options:
+        for j in i:
+            options_unwrapped.append(j)
+
+    return tuple(options_unwrapped)

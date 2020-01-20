@@ -1,4 +1,5 @@
 from combinatoric_tools.tools import *
+import pandas as pd
 
 card_deck = "AABBCCDDDEEEFFFFGGGGG"
 
@@ -14,35 +15,69 @@ deck_remaining = card_deck
 for card in hand:
     deck_remaining = deck_remaining.replace(card, '', 1)
 
+print(f'\nAgent Hand: {hand} and deck remaining: {deck_remaining}')
+
+
+# Agent is player so it will act first:
+option_mapping = {'secret': get_secret_options,
+                  'burn': get_burn_options,
+                  'gift': get_gift_options,
+                  'comp': get_comp_options}
+
+N_agent_1 = 0
+
+position = {'hand_1': ''.join(hand),
+            'action_1': [],
+            'cards_played_1': [],
+            'hand_2': [],
+            'action_2': [],
+            'cards_played_2': []}
+
+counter = 1
+
+# Loop through all four available actions:
+for action_key in option_mapping.keys():
+    options = option_mapping[action_key](cards_in_hand=hand)
+
+    # Loop through each card choices:
+    for opt in options:
+        hand_after_this = neg_intersect(hand, flatten(opt))
+
+        # Loop through all unique card draws in the next turn:
+        for card in set(itertools.combinations(deck_remaining, 1)):
+
+            position['action_1'].append(action_key)
+            position['cards_played_1'].append(opt)
+            position['hand_2'].append(''.join(join_tuples(hand_after_this, card)))
+
+            counter += 1
+
+# Opponent First turn:
 opponent_hands = all_hands(deck=deck_remaining, n=7)
 
-print(f'\n Hand: {hand} and Deck remaining: {deck_remaining}')
 print(f'Possible enemy hands: {len(opponent_hands)} \n')
 
 # For each opponent hand, the opponent can choose 4 actions
-N = 0
+N_enemy_1 = 0
 
-for hand in opponent_hands:
-    print(f"Opponent's hand: {hand}")
+for idx, hand in enumerate(opponent_hands):
 
     secret_options = set(itertools.combinations(hand, 1))
-    print(f'Secret: {secret_options}')
+    # print(f'Secret: {secret_options}')
 
     burn_options = set(itertools.combinations(hand, 2))
-    print(f'Burn: {burn_options}')
+    # print(f'Burn: {burn_options}')
 
     gift_options = set(itertools.combinations(hand, 3))
-    print(f'Gift: {gift_options}')
+    # print(f'Gift: {gift_options}')
 
     comp_options = get_comp_options(hand)
-    print(f'Comp: {comp_options} \n')
+    # print(f'Comp: {comp_options} \n')
 
     N_enemy_options = len(secret_options) + len(burn_options) + len(gift_options) + sum([len(i) for i in comp_options])
 
-    print(f'\n Enemy options with this hand: {N_enemy_options} \n')
+    # print(f'{idx+1}: Enemy hand: {hand} >>>> options with this hand in turn {1}: {N_enemy_options}')
 
-    N += N_enemy_options
+    N_enemy_1 += N_enemy_options
 
-
-print(f'\n \n Total Enemy options: {N}')
-
+print(f'\n \n Total Enemy options in turn {1}: {N_enemy_1} __________________________')
