@@ -1,40 +1,66 @@
-import math
 import itertools
 
-#     The following functions: return the amount of options an agent has when it has n cards in its hand.
-#     Also returns the amount of cards in the next turn. """
+
+def secret(cards_in_hand):
+    return len(set(itertools.combinations(cards_in_hand, 1)))
 
 
-def n_choose_k(n, k):
-    return int(math.factorial(n) / (math.factorial(k) * math.factorial(n - k)))
+def burn(cards_in_hand):
+    return len(set(itertools.combinations(cards_in_hand, 2)))
 
 
-def secret(n):
-    return n_choose_k(n=n, k=1), n
+def gift(cards_in_hand):
+    return len(set(itertools.combinations(cards_in_hand, 3)))
 
 
-def burn(n):
-    return n_choose_k(n=n, k=2), n-1
+def comp(cards_in_hand):
+    choose_4 = set(itertools.combinations(cards_in_hand, 4))
+
+    number_of_options = 0
+    for i in choose_4:
+        divide_options = len(set(itertools.combinations(i, 2)))
+        if divide_options == 1:
+            number_of_options += 1
+        else:
+            number_of_options += divide_options // 2
+
+    return number_of_options
 
 
-def gift(n):
-    return n_choose_k(n=n, k=3), n-2
+# The four actions that can be chosen from: permutation done via indexing 0, 1, 2, 3
+actions = [secret, burn, gift, comp]
+action_index_permutations = set(itertools.permutations([0, 1, 2, 3]))
+
+# The card deck setup:
+card_deck = 'AABBCCDDDEEEFFFFGGGGG'
 
 
-def comp(n):
-    return n_choose_k(n=n, k=4), n-3
+# All uniqe combinations for a hand with n cards:
+def all_hands(n):
+    return set(itertools.combinations(card_deck, n))
 
 
-choices = [secret, burn, gift, comp]
+# Integer used for counting all options:
+N_total = 0
 
-N_choices = 0     # Counter for all choices.
+# Loop through all possible action permutation choices:
+for action_permutation in action_index_permutations:
 
-# Loop through each permutation of the choices: 24 possibilities
-for perm in list(itertools.permutations(choices)):
-    N = 7   # Each game you start with 7 cards
-    # Loop through the four actions in this permutation and add all choices
-    for action in perm:
-        n_choices, N = action(N)
-        N_choices += n_choices
+    # We start with 7 cards
+    N = 7
 
-print(f"The total amount of agent choices independent of specific cards: {int(N_choices)}")
+    # Loop through each action:
+    for action_index in action_permutation:
+
+        # All possible cards in the agent's hand with N cards:
+        all_possible_hands = all_hands(N)
+
+        # For each hand gather all unique options we have:
+        for hand in all_possible_hands:
+            N_options = actions[action_index](hand)
+            N_total += N_options
+
+        # In the next turn we have a different number of cards depending on the action
+        N += -action_index
+
+print(N_total)

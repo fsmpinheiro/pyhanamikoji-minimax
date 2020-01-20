@@ -104,5 +104,6 @@ for i in range(4):
     print(p2.cards)
     p2.turn(turn_index=i, opponent=p1)
 
+
 print(p1.cards_placed)
 print(p2.cards_placed)
