@@ -26,8 +26,12 @@ def comp(cards_in_hand):
     number_of_options = 0
     for i in choose_4:
         divide_options = len(set(itertools.combinations(i, 2)))
+
+        # If all are the same we have one chocie:
         if divide_options == 1:
             number_of_options += 1
+
+        # If we have multiple we have to count half of them:
         else:
             number_of_options += divide_options // 2
 

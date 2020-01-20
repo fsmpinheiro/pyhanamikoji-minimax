@@ -1,5 +1,5 @@
 from deck import Deck
-from random_agent import Agent
+from agent import Agent
 
 # Init objects:
 d = Deck()
@@ -50,7 +50,12 @@ def evaluate_game(p1_placed, p2_placed):
     elif p2_points >= 11 or p2_geishas >= 4:
         winner = 'Player 2'
     else:
-        winner = 'No one.'
+        if p1_points > p2_points:
+            winner = 'Player 1'
+        elif p1_points < p2_points:
+            winner = 'Player 2'
+        else:
+            winner = 'NO ONE.'
 
     print(f'\n SUMMARY: \n '
           f'>>>> Player 1 has {p1_points} with {p1_geishas} Geishas. \n'
