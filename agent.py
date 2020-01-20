@@ -1,4 +1,3 @@
-from __future__ import annotations
 import itertools
 import random
 card_deck = 'AABBCCDDDEEEFFFFGGGGG'
@@ -143,44 +142,44 @@ class Agent:
         self.cards_placed = ''.join(sorted(self.cards_placed))
         print(f'{self.name}: with hand: {self.hand} and cards placed: {self.cards_placed}')
 
-    def turn(self, deck, opponent: Agent):
+    def turn(self, deck, opponent):
         self.hand += deck.pull_card()
 
         # Calculate the options this agent has for this turn:
         self.own_options()
 
         # Calculate enemy options:
-        # deck_remaining = card_deck
-        # for card in self.hand:
-        #     deck_remaining = deck_remaining.replace(card, '', 1)
-        #
-        # for card in self.cards_placed:
-        #     deck_remaining = deck_remaining.replace(card, '', 1)
-        #
-        # for card in opponent.cards_placed:
-        #     deck_remaining = deck_remaining.replace(card, '', 1)
-        #
-        # opponent_hands = all_hands(deck=deck_remaining, n=len(opponent.hand))
-        #
-        # print(f'Possible opponent hands: {len(opponent_hands)} \n\n')
-        # N_op_total = 0
-        # for op_hand in opponent_hands:
-        #     print(f'Opponent cards: {op_hand} \n')
-        #
-        #     N_choices = 0
-        #     for action_key in opponent.actions.keys():
-        #         options = opponent.option_counters[action_key](cards_in_hand=op_hand)
-        #         print(options)
-        #
-        #         if type(options) is list:
-        #             N_choices += sum([len(i) for i in options])
-        #         else:
-        #             N_choices += len(options)
-        #
-        #     print(f'\nNumber of choices opponent has for this hand: {N_choices} \n_________________________')
-        #     N_op_total += N_choices
-        #
-        # print(f'\n\n Opponent total options: {N_op_total}')
+        deck_remaining = card_deck
+        for card in self.hand:
+            deck_remaining = deck_remaining.replace(card, '', 1)
+
+        for card in self.cards_placed:
+            deck_remaining = deck_remaining.replace(card, '', 1)
+
+        for card in opponent.cards_placed:
+            deck_remaining = deck_remaining.replace(card, '', 1)
+
+        opponent_hands = all_hands(deck=deck_remaining, n=len(opponent.hand)+1)
+
+        print(f'Possible opponent hands: {len(opponent_hands)} \n\n')
+        N_op_total = 0
+        for op_hand in opponent_hands:
+            # print(f'Opponent cards: {op_hand} \n')
+
+            N_choices = 0
+            for action_key in opponent.actions.keys():
+                options = self.option_counters[action_key](cards_in_hand=op_hand)
+                # print(options)
+
+                if type(options) is list:
+                    N_choices += sum([len(i) for i in options])
+                else:
+                    N_choices += len(options)
+
+            # print(f'\nNumber of choices opponent has for this hand: {N_choices} \n_________________________')
+            N_op_total += N_choices
+
+        print(f'\n\nOpponent total options: {N_op_total}\n__________________________')
 
         # Choose the action randomly for now:
         action_key = random.choice(list(self.actions.keys()))
@@ -193,7 +192,8 @@ class Agent:
         self.option_counters.pop(action_key)
 
         # Tell the opponent what we just did:
-        opponent.opponent_actions.pop(action_key)
+        if type(opponent) == type(self):
+            opponent.opponent_actions.pop(action_key)
 
     def own_options(self):
         print(f'Cards in my hand: {self.hand} \n')

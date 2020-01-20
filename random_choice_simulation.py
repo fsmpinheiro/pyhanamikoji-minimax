@@ -1,10 +1,11 @@
 from deck import Deck
 from agent import Agent
+from random_agent import RandomAgent
 
 # Init objects:
 d = Deck()
 P1 = Agent(name='Player_1')
-P2 = Agent(name='Player_2')
+P2 = RandomAgent(name='Player_2')
 
 # Deal cards:
 d.pull_card()
