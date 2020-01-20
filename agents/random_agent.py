@@ -1,28 +1,22 @@
 import random
-from deck import choose_from_string
+from agents.base_agent import Agent
+from combinatoric_tools.tools import choose_from_string
 
 
-class RandomAgent:
-    def __init__(self, name='Agent __'):
-        self.name = name
-        self.hand = ''
-        self.cards_placed = []
-
-        self.actions = {'secret': self.secret,
-                        'burn': self.burn,
-                        'gift': self.gift,
-                        'comp': self.comp}
+class RandomAgent(Agent):
+    def __init__(self, name='RandomAgent__'):
+        super().__init__(name)
 
     def secret(self, opponent):
         card_chosen, self.hand = choose_from_string(string=self.hand, n=1)
         self.cards_placed += card_chosen
 
-        return card_chosen
+        return None
 
     def burn(self, opponent):
         cards_chosen, self.hand = choose_from_string(string=self.hand, n=2)
 
-        return cards_chosen
+        return None
 
     def gift(self, opponent):
         cards_chosen, self.hand = choose_from_string(string=self.hand, n=3)
@@ -52,24 +46,21 @@ class RandomAgent:
             self.cards_placed += bundles[1]
             return bundles[0]
 
-    def status(self):
-        self.hand = ''.join(sorted(self.hand))
-        self.cards_placed = ''.join(sorted(self.cards_placed))
-        print(f'{self.name}: with hand: {self.hand} and cards placed: {self.cards_placed}')
-
     def turn(self, deck, opponent):
+        # Pull a card:
         self.hand += deck.pull_card()
-        print(f'{self.name} has these cards: {self.hand}')
 
-        # Choose the action randomly for now:
+        # Choose the action completely randomly:
         action_key = random.choice(list(self.actions.keys()))
+
+        print(f"\n {self.name} has hand: {self.hand} and chose action: {action_key}")
 
         # Do the action:
         cards_played = self.actions[action_key](opponent=opponent)
-        print(f'{self.name} has chosen {action_key} with cards: {cards_played}')
 
         # Remove the action from the options:
         self.actions.pop(action_key)
 
         # Tell the opponent what we just did:
-        opponent.opponent_actions.pop(action_key)
+        opponent.receive_info(action_key, cards_played)
+

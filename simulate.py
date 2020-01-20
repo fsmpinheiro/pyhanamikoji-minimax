@@ -1,11 +1,12 @@
 from deck import Deck
-from agent import Agent
-from random_agent import RandomAgent
+from agents.smart_agent import SmartAgent
+from agents.random_agent import RandomAgent
 
 # Init objects:
 d = Deck()
-P1 = Agent(name='Player_1')
-P2 = RandomAgent(name='Player_2')
+
+P1 = SmartAgent(name='SmartAgent_1')
+P2 = RandomAgent(name='RandomAgent_2')
 
 # Deal cards:
 d.pull_card()
@@ -14,17 +15,18 @@ P2.hand = ''.join([d.pull_card() for _ in range(6)])
 
 # Turns:
 for i in range(4):
+    print(f"\n ____________________ TURN {i+1} ___________________________\n")
     P1.turn(deck=d, opponent=P2)
-
     P2.turn(deck=d, opponent=P1)
 
 # Print Status:
+print(f"\n >>> GAME FINISHED WITH: ")
 P1.status()
 P2.status()
 
 
 def evaluate_game(p1_placed, p2_placed):
-
+    print('\n EVALUATION:')
     p1_points = 0
     p2_points = 0
 

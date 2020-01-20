@@ -1,16 +1,4 @@
-import random
-
-
-def choose_from_string(string: str, n: int):
-    assert len(string) >= n
-    choices = []
-    for _ in range(n):
-        char = random.choice(string)
-        string = string.replace(char, '', 1)
-
-        choices.append(char)
-
-    return ''.join(choices), string
+from combinatoric_tools.tools import choose_from_string
 
 
 class Deck:
@@ -26,14 +14,7 @@ class Deck:
         self.cards = 'AABBCCDDDEEEFFFFGGGGG'
 
     def pull_card(self):
-        # Pull a random card:
-        # card = random.choice(self.cards)
-
-        # Delete it from the deck:
-        # self.cards = self.cards.replace(card, '', 1)
-
         card, self.cards = choose_from_string(string=self.cards, n=1)
-
         return card
 
     def __str__(self):
