@@ -1,7 +1,32 @@
 from game_tools.deck import Deck
+import random
 
 
-def evaluate_game(P1, P2, verbose=False):
+def game(agent, opponent):
+
+    # Init objects:
+    d = Deck()
+
+    # Deal cards:
+    d.pull_card()
+    agent.hand = ''.join([d.pull_card() for _ in range(6)])
+    opponent.hand = ''.join([d.pull_card() for _ in range(6)])
+
+    players = [agent, opponent]
+    random.shuffle(players)
+
+    # Turns:
+    for i in range(4):
+        players[0].turn(deck=d, opponent=players[1])
+        players[1].turn(deck=d, opponent=players[0])
+
+    sd = evaluate_game(agent, opponent)
+    agent.reset()
+    opponent.reset()
+    return sd
+
+
+def evaluate_game(agent, opponent, verbose=False):
     if verbose:
         print('\n EVALUATION:')
 
@@ -11,11 +36,9 @@ def evaluate_game(P1, P2, verbose=False):
     p1_geishas = 0
     p2_geishas = 0
 
-    winner_instance = None
-
     for key, value in Deck.notation.items():
-        p1 = P1.cards_placed.count(key)
-        p2 = P2.cards_placed.count(key)
+        p1 = agent.cards_placed.count(key)
+        p2 = opponent.cards_placed.count(key)
 
         if p1 > p2:
             if verbose:
@@ -33,17 +56,10 @@ def evaluate_game(P1, P2, verbose=False):
 
     if p1_points > p2_points:
         winner = 'Player 1'
-        winner_instance = P1
-        score_difference = p1_points - p2_points
-
     elif p1_points < p2_points:
         winner = 'Player 2'
-        winner_instance = P2
-        score_difference = p2_points - p1_points
-
     else:
         winner = 'NO ONE.'
-        score_difference = 0
 
     if verbose:
         print(f'\n SUMMARY: \n '
@@ -51,4 +67,5 @@ def evaluate_game(P1, P2, verbose=False):
               f' >>>> Player 2 has {p2_points} with {p2_geishas} Geishas. \n'
               f' >>>> >>>> {winner} has won!')
 
-    return winner_instance, score_difference
+    score_difference = p1_points - p2_points
+    return score_difference

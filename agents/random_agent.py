@@ -47,9 +47,13 @@ class RandomAgent(Agent):
             return bundles[0]
 
     def turn(self, deck, opponent):
+        # if len(self.actions.keys()) == 0:
+        #     return
+
         # Pull a card:
         self.hand += deck.pull_card()
 
+        # print(self.actions.keys())
         # Choose the action completely randomly:
         action_key = random.choice(list(self.actions.keys()))
 
@@ -64,3 +68,11 @@ class RandomAgent(Agent):
         # Tell the opponent what we just did:
         opponent.receive_info(action_key, cards_played)
 
+    def reset(self):
+        self.hand = ''
+        self.cards_placed = ''
+
+        self.actions = {'secret': self.secret,
+                        'burn': self.burn,
+                        'gift': self.gift,
+                        'comp': self.comp}

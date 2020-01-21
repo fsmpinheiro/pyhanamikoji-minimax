@@ -18,12 +18,17 @@ class GeneticAgent(Agent):
     card_situations = card_situations
     n_situ = len(card_situations.keys())
 
-    def __init__(self, action_genes, name='GeneticAgent __', ):
+    def __init__(self, action_genes, name='GeneticAgent __', generation: int = 0, specimen: int = 0):
         super().__init__(name)
         self.turn_counter = 1
-
         self.action_genes = action_genes
         self.action_names = list(self.actions.keys())
+        self.generation = generation
+        self.specimen = specimen
+
+        self.fitness = -999
+
+        self.root_action_genes = action_genes.copy()
 
     def find_hand_index(self):
         for hand_index, situ in self.card_situations.items():
@@ -83,3 +88,35 @@ class GeneticAgent(Agent):
         self.actions.pop(self.action_names[action_choice_index])
 
         # print(f"{self.name} has hand: {self.hand} and chose action: {action_key}.")
+
+    def reset(self):
+        self.cards_placed = ''
+        self.hand = ''
+
+        self.actions = {'secret': self.secret,
+                        'burn': self.burn,
+                        'gift': self.gift,
+                        'comp': self.comp}
+
+        self.action_genes = self.root_action_genes
+
+    def __lt__(self, other):
+        return self.fitness < other.fitness
+
+    def __le__(self, other):
+        return self.fitness <= other.fitness
+
+    def __gt__(self, other):
+        return self.fitness > other.fitness
+
+    def __ge__(self, other):
+        return self.fitness >= other.fitness
+
+    def __eq__(self, other):
+        return self.fitness == other.fitness
+
+    def __ne__(self, other):
+        return self.fitness != other.fitness
+
+    def __repr__(self):
+        return self.name + str(self.generation) + str(self.specimen)
