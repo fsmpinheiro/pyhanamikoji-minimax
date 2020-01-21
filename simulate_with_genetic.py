@@ -1,17 +1,8 @@
 import random
-
-from game_tools.deck import Deck
-from game_tools.scoring import evaluate_game, game
+from game_tools.scoring import game
 from agents.random_agent import RandomAgent
 from agents.genetic_agent import GeneticAgent
 import numpy as np
-
-N_population = 100
-
-N_elites = 10
-N_mutate_only = 10
-N_survivors = 32
-N_offsprings = 5
 
 
 # Fitness function: play 100 games against an the random agent opponent:
@@ -29,29 +20,14 @@ def fitness_function(generation):
     return fitness_score_pop, sd_list
 
 
-# Initial generation
-generation = []
-for i in range(100):
-    agent = GeneticAgent(action_genes=np.random.rand(4, GeneticAgent.n_situ), generation=1, specimen=i)
-    generation.append(agent)
-
-# Evaluate fitness score:
-fitness_score, fitness_data = fitness_function(generation)
-gen_number = 0
-print(f'Generation: {gen_number} fitness score: {fitness_score}')
-
-# Selection:
-generation_sorted = [specimen for _, specimen in sorted(zip(fitness_data, generation))]
-elites = generation_sorted[-10:]
-mutate_only = generation_sorted[-20:-10]
-pairing = generation_sorted[-52:-20]
-
-
 # Pairing
 def pairing_generator(population_for_mating):
-    males = np.random.choice(population_for_mating, size=16)
+    males = np.random.choice(population_for_mating, size=int(len(population_for_mating)/2), replace=False)
     for m in males:
-        population_for_mating.remove(m)
+        try:
+            population_for_mating.remove(m)
+        except:
+            print(males)
 
     females = population_for_mating
     assert len(females) == len(males)
@@ -71,23 +47,46 @@ def single_crossover(f_mat, m_mat):
     return new_kid
 
 
-offsprings = []
-
-for f, m in pairing_generator(population_for_mating=pairing):
-    for i in range(5):
-        action_genes = single_crossover(f.root_action_genes, m.root_action_genes)
-
-        offspring = GeneticAgent(action_genes=action_genes)
-        offsprings.append(offspring)
-
-
+# Initial generation
 generation = []
-[generation.append(e) for e in elites]
-[generation.append(m) for m in mutate_only]
-[generation.append(o) for o in offsprings]
+for i in range(100):
+    agent = GeneticAgent(action_genes=np.random.rand(4, GeneticAgent.n_situ), generation=1, specimen=i)
+    generation.append(agent)
 
-# print(generation)
+# Evaluate fitness score:
+for i in range(10000):
+    fitness_score, fitness_data = fitness_function(generation)
+    gen_number = i
+    print(f'Generation: {gen_number} fitness score: {fitness_score}')
 
-fitness_score, fitness_data = fitness_function(generation)
-gen_number = 1
-print(f'Generation: {gen_number} fitness score: {fitness_score}')
+    # Selection:
+    generation_sorted = [specimen for _, specimen in sorted(zip(fitness_data, generation))]
+    elites = generation_sorted[-10:]
+    mutate_only = generation_sorted[-20:-10]
+    pairing = generation_sorted[-52:-20]
+
+    # New generation
+    c = 0
+    generation = []
+
+    # The best ones get to go free:
+    for e in elites:
+        ga = GeneticAgent(action_genes=e.root_action_genes, name="GeneticAgent", generation=i, specimen=c)
+        c += 1
+        generation.append(ga)
+
+    for m in mutate_only:
+        ga = GeneticAgent(action_genes=m.root_action_genes, name="GeneticAgent", generation=i, specimen=c)
+        c += 1
+        generation.append(ga)
+
+    # Pairing and Mating:
+    for f, m in pairing_generator(population_for_mating=pairing):
+        for i in range(5):
+            action_genes = single_crossover(f.root_action_genes, m.root_action_genes)
+
+            offspring = GeneticAgent(action_genes=action_genes, generation=i, specimen=c)
+            generation.append(offspring)
+            c += 1
+
+    print(len(generation))
