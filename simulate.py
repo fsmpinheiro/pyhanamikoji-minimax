@@ -1,11 +1,11 @@
-from deck import Deck
-from agents.smart_agent import SmartAgent
+from game_tools.deck import Deck
 from agents.random_agent import RandomAgent
+from agents.genetic_agent import GeneticAgent
 
 # Init objects:
 d = Deck()
 
-P1 = SmartAgent(name='SmartAgent_1')
+P1 = GeneticAgent(name='GeneticAgent_1')
 P2 = RandomAgent(name='RandomAgent_2')
 
 # Deal cards:

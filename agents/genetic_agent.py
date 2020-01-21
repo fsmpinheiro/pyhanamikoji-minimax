@@ -1,22 +1,34 @@
 import random
+import numpy as np
+import itertools
 from agents.base_agent import Agent
 from combinatoric_tools.tools import choose_from_string, all_hands
-from combinatoric_tools.tools import get_secret_options, get_burn_options, get_gift_options, get_comp_options
 
 CARD_DECK_SETUP = 'AABBCCDDDEEEFFFFGGGGG'
 
+card_situations = {i: [] for i in range(2187)}
+counter = 0
+for n_cards in range(1, 8):
+    for situation in set(itertools.combinations(CARD_DECK_SETUP, n_cards)):
+        card_situations[counter] = tuple(sorted(situation))
+        counter += 1
 
-class SmartAgent(Agent):
-    def __init__(self, name='SmartAgent __'):
+
+class GeneticAgent(Agent):
+    card_situations = card_situations
+    n_situ = len(card_situations.keys())
+
+    def __init__(self, action_genes, name='GeneticAgent __', ):
         super().__init__(name)
         self.turn_counter = 1
-        self.option_mapping = {'secret': get_secret_options,
-                               'burn': get_burn_options,
-                               'gift': get_gift_options,
-                               'comp': get_comp_options}
 
-        self.opponent_actions_done = []
-        self.opponent_cards_played = []
+        self.action_genes = action_genes
+        self.action_names = list(self.actions.keys())
+
+    def find_hand_index(self):
+        for hand_index, situ in self.card_situations.items():
+            if situ == tuple(sorted(self.hand)):
+                return hand_index
 
     def secret(self, opponent):
         card_chosen, self.hand = choose_from_string(string=self.hand, n=1)
@@ -52,35 +64,22 @@ class SmartAgent(Agent):
         # Pull a card:
         self.hand += deck.pull_card()
 
-        # Calculate the options this agent has for this turn:
-        option_data = self.own_options()
-        print(option_data)
+        # Get the input vector:
+        idx = self.find_hand_index()
+        input_vector = np.array([0. if idx != i else 1. for i in range(self.n_situ)])
 
-        # Choose the action randomly for now:
-        action_key = random.choice(list(self.actions.keys()))
+        # Decide on the action:
+        action_output = self.action_genes @ input_vector
+
+        # Find the biggest one:
+        action_choice_index = int(np.argmax(action_output))
+        action_key = self.action_names[action_choice_index]
 
         # Do the action:
         self.actions[action_key](opponent=opponent)
 
         # Remove the action from the options:
-        self.actions.pop(action_key)
+        self.action_genes[action_choice_index, :] = -1000
+        self.actions.pop(self.action_names[action_choice_index])
 
-    def own_options(self):
-        print(f'Cards in my hand: {self.hand} \n')
-
-        opt_map = {'action': [],
-                   'cards': []}
-
-        for action_key in self.actions.keys():
-            options = self.option_mapping[action_key](cards_in_hand=self.hand)
-            print(f'Agent options: {options}')
-
-            for opt in options:
-                opt_map['action'].append(action_key)
-                opt_map['cards'].append(opt)
-
-        return opt_map
-
-    def receive_info(self, action_key, cards_played):
-        self.opponent_actions_done.append(action_key)
-        self.opponent_cards_played.append(cards_played)
+        # print(f"{self.name} has hand: {self.hand} and chose action: {action_key}.")

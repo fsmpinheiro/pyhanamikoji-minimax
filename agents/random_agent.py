@@ -53,7 +53,7 @@ class RandomAgent(Agent):
         # Choose the action completely randomly:
         action_key = random.choice(list(self.actions.keys()))
 
-        print(f"\n {self.name} has hand: {self.hand} and chose action: {action_key}")
+        # print(f"\n {self.name} has hand: {self.hand} and chose action: {action_key}")
 
         # Do the action:
         cards_played = self.actions[action_key](opponent=opponent)
