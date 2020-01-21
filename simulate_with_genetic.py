@@ -50,17 +50,25 @@ def single_crossover(f_mat, m_mat):
 # Initial generation
 generation = []
 for i in range(100):
-    agent = GeneticAgent(action_genes=np.random.rand(4, GeneticAgent.n_situ), generation=1, specimen=i)
+    agent = GeneticAgent(action_genes=np.random.rand(1, len(GeneticAgent.action_permutations)), generation=1, specimen=i)
     generation.append(agent)
 
+# Store data:
+score_diff_archive = []
+fitness_score_list = []
+
 # Evaluate fitness score:
-for i in range(10000):
+for i in range(1000):
     fitness_score, fitness_data = fitness_function(generation)
     gen_number = i
-    print(f'Generation: {gen_number} fitness score: {fitness_score}')
+    print(f'Generation: {gen_number} fitness score: {fitness_score}. ')
+    score_diff_archive.append(fitness_data)
+    fitness_score_list.append(fitness_score)
 
     # Selection:
     generation_sorted = [specimen for _, specimen in sorted(zip(fitness_data, generation))]
+    print(f" >>> Best policy: {generation_sorted[-1].root_action_genes} \n")
+
     elites = generation_sorted[-10:]
     mutate_only = generation_sorted[-20:-10]
     pairing = generation_sorted[-52:-20]
@@ -76,7 +84,10 @@ for i in range(10000):
         generation.append(ga)
 
     for m in mutate_only:
-        ga = GeneticAgent(action_genes=m.root_action_genes, name="GeneticAgent", generation=i, specimen=c)
+        mut_index = np.random.randint(0, m.root_action_genes.shape[1])
+        mutated_action_genes = m.root_action_genes
+        mutated_action_genes[:, mut_index] -= mutated_action_genes[:, mut_index]
+        ga = GeneticAgent(action_genes=mutated_action_genes, name="GeneticAgent", generation=i, specimen=c)
         c += 1
         generation.append(ga)
 
@@ -88,5 +99,3 @@ for i in range(10000):
             offspring = GeneticAgent(action_genes=action_genes, generation=i, specimen=c)
             generation.append(offspring)
             c += 1
-
-    print(len(generation))

@@ -6,23 +6,31 @@ from combinatoric_tools.tools import choose_from_string, all_hands
 
 CARD_DECK_SETUP = 'AABBCCDDDEEEFFFFGGGGG'
 
-card_situations = {i: [] for i in range(2187)}
-counter = 0
-for n_cards in range(1, 8):
-    for situation in set(itertools.combinations(CARD_DECK_SETUP, n_cards)):
-        card_situations[counter] = tuple(sorted(situation))
-        counter += 1
+# card_situations = {i: [] for i in range(2187)}
+# counter = 0
+# for n_cards in range(1, 8):
+#     for situation in set(itertools.combinations(CARD_DECK_SETUP, n_cards)):
+#         card_situations[counter] = tuple(sorted(situation))
+#         counter += 1
 
 
 class GeneticAgent(Agent):
-    card_situations = card_situations
-    n_situ = len(card_situations.keys())
+    # card_situations = card_situations
+    # n_situ = len(card_situations.keys())
+
+    action_permutations = list(set(itertools.permutations(['secret', 'burn', 'gift', 'comp'])))
 
     def __init__(self, action_genes, name='GeneticAgent __', generation: int = 0, specimen: int = 0):
         super().__init__(name)
-        self.turn_counter = 1
-        self.action_genes = action_genes
+        self.turn_counter = 0
+
+        self.action_genes = np.array(action_genes)
+        self.action_genes /= np.linalg.norm(action_genes)
+
+        self.best_perm = self.action_permutations[int(np.argmax(action_genes))]
+
         self.action_names = list(self.actions.keys())
+
         self.generation = generation
         self.specimen = specimen
 
@@ -30,10 +38,10 @@ class GeneticAgent(Agent):
 
         self.root_action_genes = action_genes.copy()
 
-    def find_hand_index(self):
-        for hand_index, situ in self.card_situations.items():
-            if situ == tuple(sorted(self.hand)):
-                return hand_index
+    # def find_hand_index(self):
+    #     for hand_index, situ in self.card_situations.items():
+    #         if situ == tuple(sorted(self.hand)):
+    #             return hand_index
 
     def secret(self, opponent):
         card_chosen, self.hand = choose_from_string(string=self.hand, n=1)
@@ -69,25 +77,30 @@ class GeneticAgent(Agent):
         # Pull a card:
         self.hand += deck.pull_card()
 
+        # Decide on the an action:
+        action_key = self.best_perm[self.turn_counter]
+
         # Get the input vector:
-        idx = self.find_hand_index()
-        input_vector = np.array([0. if idx != i else 1. for i in range(self.n_situ)])
-
-        # Decide on the action:
-        action_output = self.action_genes @ input_vector
-
-        # Find the biggest one:
-        action_choice_index = int(np.argmax(action_output))
-        action_key = self.action_names[action_choice_index]
+        # idx = self.find_hand_index()
+        # input_vector = np.array([0. if idx != i else 1. for i in range(self.n_situ)])
+        #
+        # # Decide on the action:
+        # action_output = self.action_genes @ input_vector
+        #
+        # # Find the biggest one:
+        # action_choice_index = int(np.argmax(action_output))
+        # action_key = self.action_names[action_choice_index]
 
         # Do the action:
         self.actions[action_key](opponent=opponent)
 
         # Remove the action from the options:
-        self.action_genes[action_choice_index, :] = -1000
-        self.actions.pop(self.action_names[action_choice_index])
+        # self.action_genes[action_choice_index, :] = -1000
+        # self.actions.pop()
 
         # print(f"{self.name} has hand: {self.hand} and chose action: {action_key}.")
+
+        self.turn_counter += 1
 
     def reset(self):
         self.cards_placed = ''
