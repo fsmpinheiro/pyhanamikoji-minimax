@@ -29,6 +29,10 @@ N_agent_1 = 0
 position = {'hand_1': ''.join(hand),
             'action_1': [],
             'cards_played_1': [],
+            'enemy_response': [],
+            'enemy_hand_1': [],
+            'enemy_action_1:': [],
+            'enemy_cards_played_1': [],
             'hand_2': [],
             'action_2': [],
             'cards_played_2': []}
@@ -41,16 +45,46 @@ for action_key in option_mapping.keys():
 
     # Loop through each card choices:
     for opt in options:
-        hand_after_this = neg_intersect(hand, flatten(opt))
 
-        # Loop through all unique card draws in the next turn:
-        for card in set(itertools.combinations(deck_remaining, 1)):
+        enemy_response = 'N.A.'
+        if action_key == 'gift':
+            enemy_responses = set(itertools.combinations(opt, 1))
+            for enemy_response in enemy_responses:
+                enemy_response = tuple(enemy_response[0])
 
+                position['action_1'].append(action_key)
+                position['cards_played_1'].append(opt)
+                position['enemy_response'].append(enemy_response)
+
+                counter += 1
+
+        elif action_key == 'comp':
+            enemy_responses = set(itertools.combinations([''.join(i) for i in opt], 1))
+            for enemy_response in enemy_responses:
+                enemy_response = tuple(enemy_response[0])
+
+                position['action_1'].append(action_key)
+                position['cards_played_1'].append(opt)
+                position['enemy_response'].append(enemy_response)
+
+                counter += 1
+
+        else:
             position['action_1'].append(action_key)
             position['cards_played_1'].append(opt)
-            position['hand_2'].append(''.join(join_tuples(hand_after_this, card)))
+            position['enemy_response'].append(enemy_response)
 
             counter += 1
+
+        # hand_after_this = neg_intersect(hand, flatten(opt))
+        # # Loop through all unique card draws in the next turn:
+        # for card in set(itertools.combinations(deck_remaining, 1)):
+        #
+        #     position['action_1'].append(action_key)
+        #     position['cards_played_1'].append(opt)
+        #     position['hand_2'].append(''.join(join_tuples(hand_after_this, card)))
+
+
 
 # Opponent First turn:
 opponent_hands = all_hands(deck=deck_remaining, n=7)
