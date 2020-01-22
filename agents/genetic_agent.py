@@ -19,13 +19,17 @@ class GeneticAgent(Agent):
     # n_situ = len(card_situations.keys())
 
     action_permutations = list(set(itertools.permutations(['secret', 'burn', 'gift', 'comp'])))
+    card_types = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
-    def __init__(self, action_genes, name='GeneticAgent __', generation: int = 0, specimen: int = 0):
+    def __init__(self, action_genes, secret_genes, name='GeneticAgent __', generation: int = 0, specimen: int = 0):
         super().__init__(name)
         self.turn_counter = 0
 
         self.action_genes = np.array(action_genes)
         self.action_genes /= np.linalg.norm(action_genes)
+
+        self.secret_genes = np.array(secret_genes)
+        self.secret_genes /= np.linalg.norm(secret_genes)
 
         self.best_perm = self.action_permutations[int(np.argmax(action_genes))]
 
@@ -33,10 +37,10 @@ class GeneticAgent(Agent):
 
         self.generation = generation
         self.specimen = specimen
-
         self.fitness = -999
 
         self.root_action_genes = action_genes.copy()
+        self.root_secret_genes = self.secret_genes.copy()
 
     # def find_hand_index(self):
     #     for hand_index, situ in self.card_situations.items():
@@ -44,7 +48,18 @@ class GeneticAgent(Agent):
     #             return hand_index
 
     def secret(self, opponent):
-        card_chosen, self.hand = choose_from_string(string=self.hand, n=1)
+
+        options = set(itertools.combinations(self.hand, 1))
+        options = [o[0] for o in sorted(options)]
+        distribution = []
+
+        for idx, c_type in enumerate(self.card_types):
+            if c_type in options:
+                distribution.append(self.secret_genes[idx])
+
+        distribution = np.array(distribution) / sum(distribution)
+
+        card_chosen = np.random.choice(options, p=distribution)
         self.cards_placed += card_chosen
 
     def burn(self, opponent):
