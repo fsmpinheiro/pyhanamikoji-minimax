@@ -65,9 +65,6 @@ class RandomAgent(Agent):
         # Remove the action from the options:
         self.actions.pop(action_key)
 
-        # Tell the opponent what we just did:
-        opponent.receive_info(action_key, cards_played)
-
     def reset(self):
         self.hand = ''
         self.cards_placed = ''

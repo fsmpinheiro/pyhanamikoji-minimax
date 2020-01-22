@@ -1,5 +1,5 @@
 import arcade
-from arcade_game.gui_elements import TextBoxButton, ButtonSprite, ButtonSpriteList
+from arcade_game.gui_elements import TextBoxButton, ButtonSpriteList, ActionSprite
 from game_tools.deck import Deck
 
 ACTION_SPACING = 90
@@ -40,6 +40,9 @@ class Game(arcade.Window):
         self.deck = Deck()
         self.player_cards = ''
         self.opponent_cards = ''
+        self.discarded_cards = ''
+        self.player_placed_cards = ''
+        self.opponent_placed_cards = ''
 
         self.started = False
 
@@ -48,12 +51,21 @@ class Game(arcade.Window):
 
         # GUI ACTIONS:
         self.started = True
+        self.start_button.disable()
         for idx, action in enumerate(self.actions):
-            button = ButtonSprite(filename=assets_path+action+'.png', scale=0.2,
-                                  center_x=int(self.width/1.5 + (idx-3) * ACTION_SPACING), center_y=60,
-                                  action_function=self.action_functions[idx])
+            action_player = ActionSprite(filename=assets_path+action+'.png', scale=0.2,
+                                         center_x=int(self.width/1.5 + (idx-3) * ACTION_SPACING),
+                                         center_y=60,
+                                         action_function=self.action_functions[idx])
 
-            self.action_sprites.append(button)
+            action_opponent = ActionSprite(filename=assets_path+action+'.png', scale=0.2,
+                                           center_x=int(self.width/1.5 + (idx-3) * ACTION_SPACING),
+                                           center_y=self.height-60,
+                                           action_function=self.action_functions[idx])
+            action_opponent.disable()
+
+            self.action_sprites.append(action_player)
+            self.action_sprites.append(action_opponent)
 
         # GAME LOGIC:
         self.deck.pull_card()
@@ -92,16 +104,14 @@ class Game(arcade.Window):
         arcade.draw_text('AI', start_x=20, start_y=self.height-30, color=arcade.color.WHITE, font_size=25)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if not self.started:
-            if self.start_button.check_mouse_press(x, y):
-                self.start_button.on_press()
+        if self.start_button.check_mouse_press(x, y):
+            self.start_button.on_press()
 
         self.action_sprites.check_press(x, y)
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int):
-        if not self.started:
-            if self.start_button.pressed:
-                self.start_button.on_release()
+        if self.start_button.pressed:
+            self.start_button.on_release()
 
         self.action_sprites.check_release()
 

@@ -10,9 +10,11 @@ class Button:
         self.height = height
         self.action_function = action_function
         self.pressed = False
+        self.enabled = True
 
     def on_press(self):
-        self.pressed = True
+        if self.enabled:
+            self.pressed = True
 
     def on_release(self):
         self.pressed = False
@@ -28,6 +30,12 @@ class Button:
         if y < self.center_y - self.height / 2:
             return False
         return True
+
+    def disable(self):
+        self.enabled = False
+
+    def enable(self):
+        self.enabled = True
 
 
 class TextBoxButton(Button):
@@ -104,6 +112,14 @@ class ButtonSprite(arcade.Sprite, Button):
 class ActionSprite(ButtonSprite):
     def __init__(self, filename, scale, center_x, center_y, action_function):
         super().__init__(filename, scale, center_x, center_y, action_function)
+
+    # Should handle selection and when the button is enabled for clicking.
+
+    def change_texture(self):
+        pass
+
+    def reset_selection(self):
+        pass
 
 
 # This is for type hinting to also accept SpriteButton instances and not just Sprites.
