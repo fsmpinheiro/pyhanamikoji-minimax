@@ -9,10 +9,7 @@ class GUIAgent:
                        'comp': self.comp}
 
     def turn(self, cards_in_hand):
-
-
-
-        return cards_in_hand, cards_placed, cards_burned
+        pass
 
     def secret(self, cards_in_hand):
         pass
