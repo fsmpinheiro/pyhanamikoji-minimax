@@ -1,6 +1,8 @@
 import arcade
 import typing
 
+from game_tools.state_machine import States
+
 
 class Button:
     def __init__(self, center_x, center_y, width, height, action_function):
@@ -144,6 +146,14 @@ class ActionSprite(ButtonSprite):
 T = typing.TypeVar('T', bound=ButtonSprite)
 
 
+class ButtonSpriteList(arcade.SpriteList):
+    def __init__(self):
+        super().__init__()
+
+    def __iter__(self) -> typing.Iterable[T]:
+        return iter(self.sprite_list)
+
+
 class ActionSpriteList:
     scale = 0.2
 
@@ -183,40 +193,44 @@ class ActionSpriteList:
                                      disabled_texture=assets_path + 'comp2.png')
 
         self.btn_lst = [self.secret_btn, self.burn_btn, self.gift_btn, self.comp_btn]
-        self.available = (self.secret_btn, self.burn_btn, self.gift_btn, self.comp_btn)
+        self.available_lst = (self.secret_btn, self.burn_btn, self.gift_btn, self.comp_btn)
+
+        self.state_to_button_dict = {States.P1_BURN: 1,
+                                     States.P1_SECRET: 0,
+                                     States.P1_GIFT: 2,
+                                     States.P1_COMP: 3}
 
     def check_press(self, x, y):
         for sp in self.btn_lst:
             if sp.check_mouse_press(x, y):
                 sp.on_press()
 
-    def check_release(self):
-        pressed_count = 0
-        for sp in self.btn_lst:
-            if sp.pressed:
-                pressed_count += 1
-                sp.on_release()
-
-        return pressed_count
-
-    def draw(self):
-        for sp in self.btn_lst:
-            sp.draw()
-
     def all(self):
         return self.btn_lst
 
+    def available(self):
+        return list(self.available_lst)
+
+    def other_than(self, state):
+
+        av = self.available()
+
+        idx_of_button = self.state_to_button_dict[state]
+
+        av.remove(av[idx_of_button])
+        return av
+
     def remove_availble(self, btn):
-        self.available = tuple(x for x in self.available if x != btn)
+        self.available_lst = tuple(x for x in self.available_lst if x != btn)
 
     def not_secret(self):
-        return [self.burn_btn, self.gift_btn,  self.comp_btn]
+        return [x for x in self.available_lst if x != self.secret_btn]
 
     def not_burn(self):
-        return [self.secret_btn, self.gift_btn, self.comp_btn]
+        return [x for x in self.available_lst if x != self.burn_btn]
 
     def not_gift(self):
-        return [self.secret_btn, self.burn_btn, self.comp_btn]
+        return [x for x in self.available_lst if x != self.gift_btn]
 
     def not_comp(self):
-        return [self.secret_btn, self.burn_btn, self.gift_btn]
+        return [x for x in self.available_lst if x != self.comp_btn]

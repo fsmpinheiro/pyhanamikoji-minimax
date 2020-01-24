@@ -22,8 +22,20 @@ class States(Enum):
     IS_IT_OVER = 16
     END = 17
 
+    def is_p1_choosing_cards(self):
+        if self.value in [3, 4, 5, 6]:
+            return True
+        else:
+            return False
+
+    def __lt__(self, other):
+        return self.value > other
+
     def __eq__(self, other):
         return self.value == other
+
+    def __ne__(self, other):
+        return self.value != other
 
     def __hash__(self):
         return self.value
