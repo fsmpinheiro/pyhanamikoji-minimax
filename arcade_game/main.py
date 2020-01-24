@@ -1,21 +1,21 @@
+from functools import wraps
 import arcade
-from arcade_game.gui_elements import TextBoxButton, ButtonSpriteList, ActionSprite
+from arcade_game.gui_elements import TextBoxButton, ActionSpriteList, ActionSprite
 from game_tools.deck import Deck
 from game_tools.state_machine import HanamikojiStateMachine, States
 
-ACTION_SPACING = 90
-GEISHA_SPACING = 90
-GEISHA_SCALING = 0.28
-CARD_SPACING = 90
-
 assets_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\'
-cards_path = assets_path+'\\cards\\'
+cards_path = assets_path + '\\cards\\'
 
 
+# noinspection PyCallingNonCallable,PyMethodParameters,PyArgumentList
 class Game(arcade.Window):
+    ACTION_SPACING = 90
+    GEISHA_SPACING = 90
+    GEISHA_SCALING = 0.28
+    CARD_SPACING = 90
+
     geishas = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
-    actions = ('secret', 'burn', 'gift', 'comp')
-    cards = tuple('AABBCCDDDEEEFFFFGGGG')
 
     def __init__(self):
         super().__init__(title='Hanamikoji', antialiasing=True)
@@ -23,107 +23,124 @@ class Game(arcade.Window):
 
         # To store all sprites:
         self.static_sprites = arcade.SpriteList()
-        self.card_sprites = arcade.SpriteList()
-        self.action_sprites = ButtonSpriteList()
+        self.action_sprites_player = ActionSpriteList(assets_path=assets_path, game_window=self)
+        self.action_sprites_opponent = ActionSpriteList(assets_path=assets_path, game_window=self, opponent=True)
 
-        self.action_functions = [self.secret, self.burn, self.gift, self.comp]
-
-        # One time button at the start of the game:
-        self.start_button = TextBoxButton(text='Start Game', center_x=self.width-65, center_y=45,
-                                          width=120, height=60, action_function=self.start_game)
+        # Start game button:
+        self.start_button = TextBoxButton(text='Start Game', center_x=self.width - 65, center_y=45,
+                                          width=120, height=60, action_function=self.start_button_pressed)
 
         # Load Geisha sprites:
-        [self.static_sprites.append(arcade.Sprite(assets_path+self.geishas[i]+'.png', scale=GEISHA_SCALING,
-                                                  center_x=int(self.width/2 + (i-3) * GEISHA_SPACING),
-                                                  center_y=self.height/2)) for i in range(7)]
+        [self.static_sprites.append(arcade.Sprite(assets_path + self.geishas[i] + '.png', scale=self.GEISHA_SCALING,
+                                                  center_x=int(self.width / 2 + (i - 3) * self.GEISHA_SPACING),
+                                                  center_y=self.height / 2)) for i in range(7)]
 
         # Game logic:
         self.SM = HanamikojiStateMachine()
 
-        self.deck = Deck()
-        self.player_cards = ''
-        self.opponent_cards = ''
-        self.discarded_cards = ''
-        self.player_placed_cards = ''
-        self.opponent_placed_cards = ''
+        self.enabled_buttons_dict = {s: [] for s in States}
+        self.enabled_buttons_dict = {**self.enabled_buttons_dict,
+                                     States.START: [self.start_button],
+                                     States.P1_CHOOSING: self.action_sprites_player.available,
 
-        self.started = False
+                                     States.P1_SECRET: self.action_sprites_player.not_secret(),
+                                     States.P1_BURN: self.action_sprites_player.not_burn(),
+                                     States.P1_GIFT: self.action_sprites_player.not_gift(),
+                                     States.P1_COMP: self.action_sprites_player.not_comp()}
+
+        self.visible_buttons_dict = {s: [] for s in States}
+        self.visible_buttons_dict = {**self.visible_buttons_dict,
+                                     States.START: [self.start_button],
+                                     States.P1_CHOOSING: self.action_sprites_player.all(),
+                                     States.P1_SECRET: self.action_sprites_player.all(),
+                                     States.P1_BURN: self.action_sprites_player.all(),
+                                     States.P1_GIFT: self.action_sprites_player.all(),
+                                     States.P1_COMP: self.action_sprites_player.all()}
 
     @property
     def state(self):
         return self.SM.state
 
-    def start_game(self):
-        print('Started game')
+    def get_all_buttons(self):
+        return [self.start_button] + self.action_sprites_player.all()
+
+    @property
+    def enabled_buttons(self):
+        return self.enabled_buttons_dict[self.state]
+
+    @property
+    def visible_buttons(self):
+        return self.visible_buttons_dict[self.state]
+
+    def update_buttons(self):
+
+        for btn in self.get_all_buttons():
+            btn.set_enabled(False)
+            btn.set_visible(False)
+
+        for btn in self.enabled_buttons:
+            btn.set_enabled(True)
+
+        for btn in self.visible_buttons:
+            btn.set_visible(True)
+
+    def _state_changer(f):
+        """ This is a decorator for functions that change the game state. Updates all buttons. """
+
+        @wraps(f)
+        def wrapped(inst, *args, **kwargs):
+            f(inst, *args, **kwargs)
+            inst.update_buttons()
+
+        return wrapped
+
+    @_state_changer
+    def start_button_pressed(self):
         self.SM.to(States.P1_CHOOSING)
 
-        # GUI ACTIONS:
-        self.started = True
-        self.start_button.disable()
-        for idx, action in enumerate(self.actions):
-            action_player = ActionSprite(filename=assets_path+action+'.png', scale=0.2,
-                                         center_x=int(self.width/1.5 + (idx-3) * ACTION_SPACING),
-                                         center_y=60,
-                                         action_function=self.action_functions[idx])
-
-            action_opponent = ActionSprite(filename=assets_path+action+'.png', scale=0.2,
-                                           center_x=int(self.width/1.5 + (idx-3) * ACTION_SPACING),
-                                           center_y=self.height-60,
-                                           action_function=self.action_functions[idx])
-            action_opponent.disable()
-
-            self.action_sprites.append(action_player)
-            self.action_sprites.append(action_opponent)
-
-        # GAME LOGIC:
-        self.deck.pull_card()
-        self.player_cards = ''.join([self.deck.pull_card() for _ in range(6)])
-        self.opponent_cards = ''.join([self.deck.pull_card() for _ in range(6)])
-
-        print(f'Player cards: {self.player_cards}')
-        print(f'Opponent cards: {self.opponent_cards}')
-
-    def secret(self):
+    @_state_changer
+    def secret_pressed(self):
         self.SM.to(States.P1_SECRET)
-        print(self.state)
 
-    def burn(self):
+    @_state_changer
+    def burn_pressed(self):
         self.SM.to(States.P1_BURN)
-        print(self.state)
 
-    def gift(self):
+    @_state_changer
+    def gift_pressed(self):
         self.SM.to(States.P1_GIFT)
-        print(self.state)
 
-    def comp(self):
+    @_state_changer
+    def comp_pressed(self):
         self.SM.to(States.P1_COMP)
-        print(self.state)
+
+    @_state_changer
+    def empty_area_pressed(self):
+        self.SM.to(States.P1_CHOOSING)
 
     def on_draw(self):
         arcade.start_render()
 
         self.static_sprites.draw()
-        self.card_sprites.draw()
-        self.action_sprites.draw()
-
-        if self.state == States.START:
-            self.start_button.draw()
+        self.action_sprites_player.draw()
+        self.action_sprites_opponent.draw()
+        self.start_button.draw()
 
         arcade.draw_text('YOU', start_x=20, start_y=30, color=arcade.color.WHITE, font_size=20)
-        arcade.draw_text('AI', start_x=20, start_y=self.height-30, color=arcade.color.WHITE, font_size=20)
+        arcade.draw_text('AI', start_x=20, start_y=self.height - 30, color=arcade.color.WHITE, font_size=20)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         if self.start_button.check_mouse_press(x, y):
             self.start_button.on_press()
 
-        self.action_sprites.check_press(x, y)
+        self.action_sprites_player.check_press(x, y)
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int):
         if self.start_button.pressed:
             self.start_button.on_release()
 
-        if self.action_sprites.check_release() == 0:
-            self.SM.to(States.P1_CHOOSING)
+        if self.action_sprites_player.check_release() == 0:
+            self.empty_area_pressed()
 
 
 def main():
