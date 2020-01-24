@@ -1,6 +1,7 @@
 import arcade
 from arcade_game.gui_elements import TextBoxButton, ButtonSpriteList, ActionSprite
 from game_tools.deck import Deck
+from game_tools.state_machine import HanamikojiStateMachine, States
 
 ACTION_SPACING = 90
 GEISHA_SPACING = 90
@@ -37,6 +38,8 @@ class Game(arcade.Window):
                                                   center_y=self.height/2)) for i in range(7)]
 
         # Game logic:
+        self.SM = HanamikojiStateMachine()
+
         self.deck = Deck()
         self.player_cards = ''
         self.opponent_cards = ''
@@ -46,8 +49,13 @@ class Game(arcade.Window):
 
         self.started = False
 
+    @property
+    def state(self):
+        return self.SM.state
+
     def start_game(self):
         print('Started game')
+        self.SM.to(States.P1_CHOOSING)
 
         # GUI ACTIONS:
         self.started = True
@@ -75,20 +83,21 @@ class Game(arcade.Window):
         print(f'Player cards: {self.player_cards}')
         print(f'Opponent cards: {self.opponent_cards}')
 
-        # for idx, pc in enumerate(tuple(self.player_cards)):
-        #     self.load_card(pc, int(self.width/2 + (idx-2.5) * CARD_SPACING), y=150)
-
     def secret(self):
-        print('secret')
+        self.SM.to(States.P1_SECRET)
+        print(self.state)
 
     def burn(self):
-        print('burn')
+        self.SM.to(States.P1_BURN)
+        print(self.state)
 
     def gift(self):
-        print('gift')
+        self.SM.to(States.P1_GIFT)
+        print(self.state)
 
     def comp(self):
-        print('comp')
+        self.SM.to(States.P1_COMP)
+        print(self.state)
 
     def on_draw(self):
         arcade.start_render()
@@ -97,11 +106,11 @@ class Game(arcade.Window):
         self.card_sprites.draw()
         self.action_sprites.draw()
 
-        if not self.started:
+        if self.state == States.START:
             self.start_button.draw()
 
-        arcade.draw_text('YOU', start_x=20, start_y=30, color=arcade.color.WHITE, font_size=25)
-        arcade.draw_text('AI', start_x=20, start_y=self.height-30, color=arcade.color.WHITE, font_size=25)
+        arcade.draw_text('YOU', start_x=20, start_y=30, color=arcade.color.WHITE, font_size=20)
+        arcade.draw_text('AI', start_x=20, start_y=self.height-30, color=arcade.color.WHITE, font_size=20)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         if self.start_button.check_mouse_press(x, y):
@@ -113,7 +122,8 @@ class Game(arcade.Window):
         if self.start_button.pressed:
             self.start_button.on_release()
 
-        self.action_sprites.check_release()
+        if self.action_sprites.check_release() == 0:
+            self.SM.to(States.P1_CHOOSING)
 
 
 def main():

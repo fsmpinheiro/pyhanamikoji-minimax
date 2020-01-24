@@ -139,9 +139,11 @@ class ButtonSpriteList(arcade.SpriteList):
                 sp.on_press()
 
     def check_release(self):
+        pressed_count = 0
         for sp in self.sprite_list:
             if sp.pressed:
+                pressed_count += 1
                 sp.on_release()
 
-
+        return pressed_count
 
