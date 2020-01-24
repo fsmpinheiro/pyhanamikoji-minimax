@@ -222,15 +222,3 @@ class ActionSpriteList:
 
     def remove_availble(self, btn):
         self.available_lst = tuple(x for x in self.available_lst if x != btn)
-
-    def not_secret(self):
-        return [x for x in self.available_lst if x != self.secret_btn]
-
-    def not_burn(self):
-        return [x for x in self.available_lst if x != self.burn_btn]
-
-    def not_gift(self):
-        return [x for x in self.available_lst if x != self.gift_btn]
-
-    def not_comp(self):
-        return [x for x in self.available_lst if x != self.comp_btn]

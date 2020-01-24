@@ -53,6 +53,8 @@ class Game(arcade.Window):
             elif s.is_p1_choosing_cards():
                 self.enabled_buttons_dict[s] = self.action_sprites_player.other_than(state=s) + [self.finish_turn_btn]
 
+            self.enabled_buttons_dict[s] += self.action_sprites_opponent.available()
+
         self.visible_buttons_dict = defaultdict(list)
         for s in States:
             if s == States.START:
