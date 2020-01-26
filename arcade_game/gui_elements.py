@@ -138,8 +138,32 @@ class ActionSprite(ButtonSprite):
         except:
             pass
 
-    def reset_selection(self):
-        pass
+
+class CardSprite(ButtonSprite):
+    def __init__(self, filename, scale, center_x, center_y, action_function, opponent: bool = False):
+        super().__init__(filename, scale, center_x, center_y, action_function)
+
+        self.append_texture(arcade.load_texture(filename[:-4]+'_disabled.png', scale=self.scale))
+        self.append_texture(arcade.load_texture(filename[:-5]+'cover.png', scale=self.scale))
+        self.selected = False
+
+        self.set_visible(True)
+        self.set_enabled(True)
+
+        if opponent:
+            self.set_enabled(False)
+            self.set_texture(2)
+
+    def set_enabled(self, param: bool):
+        super().set_enabled(param)
+        self.set_texture(int(param))
+
+    def toggle_selection(self):
+        self.selected = not self.selected
+
+    def on_release(self):
+        super().on_release()
+        self.toggle_selection()
 
 
 # This is for type hinting to also accept SpriteButton instances and not just Sprites.
@@ -154,39 +178,75 @@ class ButtonSpriteList(arcade.SpriteList):
         return iter(self.sprite_list)
 
 
-class ActionSpriteList:
-    scale = 0.2
+class CardSpriteList:
+    def __init__(self, assets_path, game_window, opponent=False):
 
+        self.card_lst = []
+
+        if opponent:
+
+            y = game_window.height - game_window.CARD_HEIGHT
+        else:
+            y = game_window.CARD_HEIGHT
+
+        self.scale = game_window.CARD_SCALING
+
+        n = len(game_window.p1_cards)
+
+        for i, c in enumerate(game_window.p1_cards):
+            card = CardSprite(filename=assets_path+'cards\\'+c+'.png', scale=game_window.CARD_SCALING,
+                              center_x=int(game_window.width / 2 + (i - (n-1)/2) * game_window.CARD_SPACING),
+                              center_y=y,
+                              action_function=self.card_clicked,
+                              opponent=opponent)
+
+            self.card_lst.append(card)
+
+    def card_clicked(self):
+        print('çard clicked')
+
+    def check_press(self, x, y):
+        for sp in self.card_lst:
+            if sp.check_mouse_press(x, y):
+                sp.on_press()
+
+    def all(self):
+        return self.card_lst
+
+
+class ActionSpriteList:
     def __init__(self, assets_path, game_window, opponent=False):
 
         if opponent:
-            y = game_window.height - 60
+            y = game_window.height - game_window.ACTION_HEIGHT
         else:
-            y = 60
+            y = game_window.ACTION_HEIGHT
+
+        self.scale = game_window.ACTION_SCALING
 
         self.secret_btn = ActionSprite(filename=assets_path + 'secret.png', scale=self.scale,
-                                       center_x=int(game_window.width / 1.5 + (0 - 3) * game_window.ACTION_SPACING),
+                                       center_x=int(game_window.width / 2 + (0 - (4-1)/2) * game_window.ACTION_SPACING),
                                        center_y=y,
                                        action_function=game_window.secret_pressed,
                                        start_enabled=False, start_visible=False,
                                        disabled_texture=assets_path + 'secret2.png')
 
         self.burn_btn = ActionSprite(filename=assets_path + 'burn.png', scale=self.scale,
-                                     center_x=int(game_window.width / 1.5 + (1 - 3) * game_window.ACTION_SPACING),
+                                     center_x=int(game_window.width / 2 + (1 - (4-1)/2) * game_window.ACTION_SPACING),
                                      center_y=y,
                                      action_function=game_window.burn_pressed,
                                      start_enabled=False, start_visible=False,
                                      disabled_texture=assets_path + 'burn2.png')
 
         self.gift_btn = ActionSprite(filename=assets_path + 'gift.png', scale=self.scale,
-                                     center_x=int(game_window.width / 1.5 + (2 - 3) * game_window.ACTION_SPACING),
+                                     center_x=int(game_window.width / 2 + (2 - (4-1)/2) * game_window.ACTION_SPACING),
                                      center_y=y,
                                      action_function=game_window.gift_pressed,
                                      start_enabled=False, start_visible=False,
                                      disabled_texture=assets_path + 'gift2.png')
 
         self.comp_btn = ActionSprite(filename=assets_path + 'comp.png', scale=self.scale,
-                                     center_x=int(game_window.width / 1.5 + (3 - 3) * game_window.ACTION_SPACING),
+                                     center_x=int(game_window.width / 2 + (3 - (4-1)/2) * game_window.ACTION_SPACING),
                                      center_y=y,
                                      action_function=game_window.comp_pressed,
                                      start_enabled=False, start_visible=False,
