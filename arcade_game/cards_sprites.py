@@ -1,5 +1,4 @@
 import arcade
-from collections import defaultdict
 
 
 class CardSprite(arcade.Sprite):
@@ -8,10 +7,11 @@ class CardSprite(arcade.Sprite):
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
+    SCALE = 0.25
 
-    def __init__(self, card: str, center_x: int, center_y: int, scale: float = 1.0):
+    def __init__(self, card: str, center_x: int, center_y: int):
         arcade.Sprite.__init__(self, filename=self.cards_path+card+'.png',
-                               center_x=center_x, center_y=center_y, scale=scale)
+                               center_x=center_x, center_y=center_y, scale=self.SCALE)
 
         # These booleans control clickability, texture display and selection:
         self._enabled: bool = False
@@ -20,8 +20,8 @@ class CardSprite(arcade.Sprite):
         self.selected: bool = False
 
         # These are the disabled and flipped textures: KEEP ORDER
-        self.append_texture(arcade.load_texture(file_name=self.cards_path+card+'_disabled'+'.png'))
-        self.append_texture(arcade.load_texture(file_name=self.cards_path+'cover.png'))
+        self.append_texture(arcade.load_texture(file_name=self.cards_path+card+'_disabled'+'.png', scale=self.SCALE))
+        self.append_texture(arcade.load_texture(file_name=self.cards_path+'cover.png', scale=self.SCALE))
 
         # Cards value:
         self.value: str = card
@@ -83,15 +83,31 @@ class CardSprite(arcade.Sprite):
 
 class CardSpriteManager:
 
-    def __init__(self, game_window: arcade.Window):
+    HAND_HEIGHT = 150
+    OFFER_HEIGHT = 250
+    PLACED_HEIGHT = 400
+
+    SPACING = 100
+
+    def __init__(self, parent_window: arcade.Window):
         self.parent_window = game_window
 
         self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
                       'p2': [], 'p2_offer': [], 'p2_placed': []}
 
-        self.card_heights = {'p1': 170, 'p1_offer': 300, 'p1_placed': 400,
-                             'p2': game_window.height - 170, 'p2_offer': game_window.height - 300,
-                             'p2_placed': game_window.height - 400}
+        self.card_heights = {'p1': self.HAND_HEIGHT,
+                             'p1_offer': self.OFFER_HEIGHT,
+                             'p1_placed': self.PLACED_HEIGHT,
+                             'p2': game_window.height - self.HAND_HEIGHT,
+                             'p2_offer': game_window.height - self.OFFER_HEIGHT,
+                             'p2_placed': game_window.height - self.PLACED_HEIGHT}
+
+    def reset_selection(self):
+        for c in self.all_cards():
+            c.selected = False
+
+    def get_selected_cards(self, key):
+        return [card for card in self.cards[key] if card.selected]
 
     def selected_cards_in_hand(self):
         for card in self.cards['p1']:
@@ -108,19 +124,44 @@ class CardSpriteManager:
             for card in card_lst:
                 yield card
 
-    card: CardSprite
+    def update(self, p1: str, p1_offer: str, p1_placed: str, p2: str, p2_offer: str, p2_placed: str):
+        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
+                      'p2': [], 'p2_offer': [], 'p2_placed': []}
 
-    def update_locations(self):
-        for key, card_list in self.cards.keys():
+        for c in p1:
+            self.cards['p1'].append(CardSprite(c, 0, 0))
+
+        for c in p1_offer:
+            self.cards['p1_offer'].append(CardSprite(c, 0, 0))
+
+        for c in p1_placed:
+            self.cards['p1_placed'].append(CardSprite(c, 0, 0))
+
+        for c in p2:
+            self.cards['p2'].append(CardSprite(c, 0, 0))
+
+        for c in p2_offer:
+            self.cards['p2_offer'].append(CardSprite(c, 0, 0))
+
+        for c in p2_placed:
+            self.cards['p2_placed'].append(CardSprite(c, 0, 0))
+
+        for key, card_list in self.cards.items():
             N = len(card_list)
 
             for idx, card in enumerate(sorted(card_list)):
-                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N-1)/2),
+                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N-1)/2) * self.SPACING,
                                   center_y=self.card_heights[key])
-
-    def update(self, p1: str, p1_offer: str, p1_placed: str, p2: str, p2_offer: str, p2_placed: str):
-        self.update_locations()
+                card.enabled = True
 
     def draw(self):
         for card in self.all_cards():
             card.draw()
+
+    def mouse_press(self, x, y):
+        for c in self.all_cards():
+            c.mouse_press(x, y)
+
+    def mouse_release(self):
+        for c in self.all_cards():
+            c.mouse_release()

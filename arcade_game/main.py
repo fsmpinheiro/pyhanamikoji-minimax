@@ -1,7 +1,6 @@
 from collections import defaultdict
 from functools import wraps
 import arcade
-
 from arcade_game.gui_agent import GUIAgent
 from arcade_game.gui_elements import TextBoxButton, ActionSpriteList, ActionSprite, CardSprite, CardSpriteList
 from game_tools.deck import Deck
