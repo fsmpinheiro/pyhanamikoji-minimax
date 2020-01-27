@@ -90,7 +90,7 @@ class CardSpriteManager:
     SPACING = 100
 
     def __init__(self, parent_window: arcade.Window):
-        self.parent_window = game_window
+        self.parent_window = parent_window
 
         self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
                       'p2': [], 'p2_offer': [], 'p2_placed': []}
@@ -98,9 +98,9 @@ class CardSpriteManager:
         self.card_heights = {'p1': self.HAND_HEIGHT,
                              'p1_offer': self.OFFER_HEIGHT,
                              'p1_placed': self.PLACED_HEIGHT,
-                             'p2': game_window.height - self.HAND_HEIGHT,
-                             'p2_offer': game_window.height - self.OFFER_HEIGHT,
-                             'p2_placed': game_window.height - self.PLACED_HEIGHT}
+                             'p2': self.parent_window.height - self.HAND_HEIGHT,
+                             'p2_offer': self.parent_window.height - self.OFFER_HEIGHT,
+                             'p2_placed': self.parent_window.height - self.PLACED_HEIGHT}
 
     def reset_selection(self):
         for c in self.all_cards():

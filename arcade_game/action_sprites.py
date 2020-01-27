@@ -7,7 +7,7 @@ class ActionSprite(arcade.Sprite):
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
-    SCALE = 0.25
+    SCALE = 0.2
 
     def __init__(self, action: str, center_x: float, center_y: float, action_function):
         arcade.Sprite.__init__(self, filename=self.actions_path+action+'.png',
@@ -80,8 +80,9 @@ class ActionSprite(arcade.Sprite):
 class ActionSpriteManager:
 
     action_library = ('secret', 'burn', 'gift', 'comp')
-    ACTION_HEIGHT = 50
-    ACTION_SPACING = 100
+
+    ACTION_HEIGHT = 60
+    ACTION_SPACING = 120
 
     def __init__(self, parent_window: arcade.Window):
         self.parent_window = parent_window
@@ -100,6 +101,33 @@ class ActionSpriteManager:
                                                    center_y=self.parent_window.height - self.ACTION_HEIGHT))
 
             self.action_indeces[idx] = a
+
+        self.p1_used = []
+        self.p2_used = []
+
+    def update_usage(self):
+
+        for idx, act_sprite in enumerate(self.player_actions()):
+            if self.action_indeces[idx] in self.p1_used:
+                act_sprite.used = True
+
+        for idx, act_sprite in enumerate(self.opponent_actions()):
+            if self.action_indeces[idx] in self.p2_used:
+                act_sprite.used = True
+
+    def p1_use_action(self, act_str: str):
+        self.p1_used.append(act_str)
+
+    def p2_use_action(self, act_str: str):
+        self.p2_used.append(act_str)
+
+    def player_actions(self):
+        for act in self.actions['p1']:
+            yield act
+
+    def opponent_actions(self):
+        for act in self.actions['p2']:
+            yield act
 
     def foo(self):
         pass
