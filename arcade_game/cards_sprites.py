@@ -2,29 +2,37 @@ import arcade
 
 
 class CardSprite(arcade.Sprite):
-
     cards_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\cards\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.25
 
-    def __init__(self, card: str, center_x: int, center_y: int):
-        arcade.Sprite.__init__(self, filename=self.cards_path+card+'.png',
+    def __init__(self, card: str, center_x: int, center_y: int, callback=None):
+        arcade.Sprite.__init__(self, filename=self.cards_path + card + '.png',
                                center_x=center_x, center_y=center_y, scale=self.SCALE)
 
         # These booleans control clickability, texture display and selection:
         self._enabled: bool = False
         self._flipped: bool = False
+        self._selected: bool = False
         self.pressed: bool = False
-        self.selected: bool = False
 
         # These are the disabled and flipped textures: KEEP ORDER
-        self.append_texture(arcade.load_texture(file_name=self.cards_path+card+'_disabled'+'.png', scale=self.SCALE))
-        self.append_texture(arcade.load_texture(file_name=self.cards_path+'cover.png', scale=self.SCALE))
+        self.append_texture(
+            arcade.load_texture(file_name=self.cards_path + card + '_disabled' + '.png', scale=self.SCALE))
+        self.append_texture(arcade.load_texture(file_name=self.cards_path + 'cover.png', scale=self.SCALE))
 
         # Cards value:
         self.value: str = card
+
+        if callback is None:
+            self.card_selected_callback = self.print_selected
+        else:
+            self.card_selected_callback = callback
+
+    def print_selected(self):
+        print(f'Card selected: {self.value}')
 
     @property
     def enabled(self):
@@ -49,6 +57,17 @@ class CardSprite(arcade.Sprite):
             self.set_texture(2)
         else:
             self.set_texture(int(not self.enabled))
+
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, value: bool):
+        self._selected = value
+
+        if value is True:
+            self.card_selected_callback()
 
     def is_click_inside(self, x, y):
         if x > self.right:
@@ -84,8 +103,7 @@ class CardSprite(arcade.Sprite):
 
 
 class CardSpriteManager:
-
-    HAND_HEIGHT = 150
+    HAND_HEIGHT = 170
     OFFER_HEIGHT = 250
     PLACED_HEIGHT = 400
 
@@ -104,12 +122,41 @@ class CardSpriteManager:
                              'p2_offer': self.parent_window.height - self.OFFER_HEIGHT,
                              'p2_placed': self.parent_window.height - self.PLACED_HEIGHT}
 
+        self.selection_limit = 7
+
+    def check_selection_limit(self):
+        N_sel = len(self.get_selection('p1'))
+        print(N_sel)
+
+        print('selection limit: ', self.selection_limit)
+
+        if N_sel == self.selection_limit:
+            for card in self.player_cards():
+                if not card.selected:
+                    card.enabled = False
+
+    def flip_opponent(self):
+        for c in self.opponent_cards():
+            c.flipped = True
+
+    def enable_all(self):
+        for c in self.player_cards():
+            c.enabled = True
+
     def reset_selection(self):
         for c in self.all_cards():
             c.selected = False
 
-    def get_selected_cards(self, key):
+    def get_selection(self, key):
         return [card for card in self.cards[key] if card.selected]
+
+    def opponent_cards(self):
+        for card in self.cards['p2']:
+            yield card
+
+    def player_cards(self):
+        for card in self.cards['p1']:
+            yield card
 
     def selected_cards_in_hand(self):
         for card in self.cards['p1']:
@@ -131,7 +178,7 @@ class CardSpriteManager:
                       'p2': [], 'p2_offer': [], 'p2_placed': []}
 
         for c in p1:
-            self.cards['p1'].append(CardSprite(c, 0, 0))
+            self.cards['p1'].append(CardSprite(c, 0, 0, callback=self.check_selection_limit))
 
         for c in p1_offer:
             self.cards['p1_offer'].append(CardSprite(c, 0, 0))
@@ -152,7 +199,7 @@ class CardSpriteManager:
             N = len(card_list)
 
             for idx, card in enumerate(sorted(card_list)):
-                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N-1)/2) * self.SPACING,
+                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING,
                                   center_y=self.card_heights[key])
                 card.enabled = True
 

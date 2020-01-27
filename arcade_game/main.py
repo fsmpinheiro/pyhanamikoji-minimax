@@ -24,7 +24,7 @@ class Game(arcade.Window):
         self.deck = Deck()
         self.agent = GUIAgent()
         self.deck.pull_card()
-        self.p1_cards = ''.join(self.deck.pull_card() for _ in range(6))
+        self.p1_cards = ''.join(self.deck.pull_card() for _ in range(7))
         self.p2_cards = ''.join(self.deck.pull_card() for _ in range(6))
 
         # To store all the cards sprites:
@@ -74,7 +74,6 @@ class Game(arcade.Window):
     def update_actions(self):
         if self.state == States.P1_CHOOSING:
             self.asm.reset_selection()
-            self.csm.reset_selection()
             self.asm.enable_all()
 
         elif self.state in [States.P1_SECRET,  States.P1_BURN, States.P1_GIFT, States.P1_COMP]:
@@ -86,7 +85,20 @@ class Game(arcade.Window):
                     act.selected = False
 
     def update_cards(self):
-        pass
+        self.csm.flip_opponent()
+
+        if self.state in [States.P1_CHOOSING, States.P1_BURN, States.P1_GIFT, States.P1_COMP]:
+            self.csm.reset_selection()
+            self.csm.enable_all()
+
+            if self.state == States.P1_CHOOSING:
+                self.csm.selection_limit = 1
+            elif self.state == States.P1_BURN:
+                self.csm.selection_limit = 2
+            elif self.state == States.P1_GIFT:
+                self.csm.selection_limit = 3
+            elif self.state == States.P1_COMP:
+                self.csm.selection_limit = 4
 
     def _state_changer(f):
         """ This is a decorator for functions that change the game state. Updates all actions and cards. """
