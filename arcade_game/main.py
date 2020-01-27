@@ -12,20 +12,9 @@ assets_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\'
 
 # noinspection PyCallingNonCallable,PyMethodParameters,PyArgumentList
 class Game(arcade.Window):
-    ACTION_SCALING = 0.2
-    ACTION_SPACING = 110
-    ACTION_HEIGHT = 50
-
     GEISHA_SCALING = 0.25
     GEISHA_SPACING = 90
-
-    CARD_SCALING = 0.25
-    CARD_SPACING = 100
-    CARD_HEIGHT = 170
-
     BRACKET_HEIGHT = 150
-
-    geishas = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
 
     def __init__(self):
         super().__init__(title='Hanamikoji', antialiasing=True, width=1000, height=900)
@@ -64,9 +53,9 @@ class Game(arcade.Window):
             self.line_point_list.append([x, self.height/2+self.BRACKET_HEIGHT])
 
         # Load Geisha sprites:
-        for i in range(7):
-            x = int(self.width / 2 + (i - 3) * self.GEISHA_SPACING)
-            geisha = arcade.Sprite(assets_path + 'cards\\' + self.geishas[i] + '.png', scale=self.GEISHA_SCALING,
+        for idx, g in enumerate(('A', 'B', 'C', 'D', 'E', 'F', 'G')):
+            x = int(self.width / 2 + (idx - 3) * self.GEISHA_SPACING)
+            geisha = arcade.Sprite(assets_path + 'cards\\' + g + '.png', scale=self.GEISHA_SCALING,
                                                   center_x=x, center_y=self.height / 2)
             self.placed_x_locations.append(x)
             self.static_sprites.append(geisha)
@@ -82,16 +71,31 @@ class Game(arcade.Window):
     def allowed_transitions(self):
         return self.SM.get_allowed_transitions()
 
-    def update_buttons(self):
+    def update_actions(self):
+        if self.state == States.P1_CHOOSING:
+            self.asm.reset_selection()
+            self.csm.reset_selection()
+            self.asm.enable_all()
+
+        elif self.state in [States.P1_SECRET,  States.P1_BURN, States.P1_GIFT, States.P1_COMP]:
+            for idx, act in self.asm.player_actions():
+                if idx + 3 == self.state.value:
+                    act.enabled = False
+                else:
+                    act.enabled = True
+                    act.selected = False
+
+    def update_cards(self):
         pass
 
     def _state_changer(f):
-        """ This is a decorator for functions that change the game state. Updates all buttons. """
+        """ This is a decorator for functions that change the game state. Updates all actions and cards. """
 
         @wraps(f)
         def wrapped(inst, *args, **kwargs):
             f(inst, *args, **kwargs)
-            inst.update_buttons()
+            inst.update_actions()
+            inst.update_cards()
 
         return wrapped
 
@@ -110,6 +114,9 @@ class Game(arcade.Window):
     def start_button_pressed(self):
         self.SM.to(States.P1_CHOOSING)
 
+        self.start_button.enabled = False
+        self.start_button.visible = False
+
     @_state_changer
     def finish_turn_pressed(self):
         check_if_cards_correct_for_this_state = True
@@ -119,19 +126,31 @@ class Game(arcade.Window):
 
     @_state_changer
     def secret_pressed(self):
-        self.SM.to(States.P1_SECRET)
+        if self.state == States.P1_SECRET:
+            self.SM.to(States.P1_CHOOSING)
+        else:
+            self.SM.to(States.P1_SECRET)
 
     @_state_changer
     def burn_pressed(self):
-        self.SM.to(States.P1_BURN)
+        if self.state == States.P1_BURN:
+            self.SM.to(States.P1_CHOOSING)
+        else:
+            self.SM.to(States.P1_BURN)
 
     @_state_changer
     def gift_pressed(self):
-        self.SM.to(States.P1_GIFT)
+        if self.state == States.P1_GIFT:
+            self.SM.to(States.P1_CHOOSING)
+        else:
+            self.SM.to(States.P1_GIFT)
 
     @_state_changer
     def comp_pressed(self):
-        self.SM.to(States.P1_COMP)
+        if self.state == States.P1_COMP:
+            self.SM.to(States.P1_CHOOSING)
+        else:
+            self.SM.to(States.P1_COMP)
 
     @_state_changer
     def empty_area_pressed(self):
@@ -145,8 +164,10 @@ class Game(arcade.Window):
         arcade.draw_lines(point_list=self.line_point_list, color=arcade.color.PINK_LACE, line_width=1)
 
         # Buttons:
-        self.asm.draw()
-        self.csm.draw()
+        if self.state != States.START:
+            self.asm.draw()
+            self.csm.draw()
+
         self.start_button.draw()
 
         # Texts:
@@ -161,9 +182,14 @@ class Game(arcade.Window):
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int):
 
-        self.start_button.mouse_release()
-        self.asm.mouse_release()
-        self.csm.mouse_release()
+        press_counter = 0
+
+        press_counter += self.start_button.mouse_release()
+        press_counter += self.asm.mouse_release()
+        press_counter += self.csm.mouse_release()
+
+        if press_counter == 0 and self.state != States.START:
+            self.empty_area_pressed()
 
 
 def main():

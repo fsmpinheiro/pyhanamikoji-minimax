@@ -1,6 +1,9 @@
+from collections import defaultdict
+
 import networkx as nx
 from enum import Enum
 import numpy as np
+import warnings
 
 
 class States(Enum):
@@ -59,8 +62,33 @@ class HanamikojiStateMachine:
 
     def __init__(self):
         self.graph = nx.DiGraph(self.edges)
-        self.state = States.START
+        self._state = States.START
         self.turn = 0
+
+        self.on_enter_calls = defaultdict(list)
+        self.on_exit_calls = defaultdict(list)
+
+    def on_exit(self, state, func):
+        self.on_exit_calls[state] = func
+
+    def on_enter(self, state, func):
+        self.on_enter_calls[state] = func
+
+    @property
+    def state(self):
+        return self._state
+
+    # noinspection PyCallingNonCallable
+    @state.setter
+    def state(self, new_state):
+
+        if callable(self.on_exit_calls[self._state]):
+            self.on_exit_calls[self._state]()
+
+        self._state = new_state
+
+        if callable(self.on_enter_calls[new_state]):
+            self.on_enter_calls[new_state]()
 
     @property
     def states(self):
@@ -78,10 +106,7 @@ class HanamikojiStateMachine:
             print(f'State Machine transition from: {self.state} to {next_state}.')
             self.state = States(next_state)
         else:
-            raise Exception(f'\n State Transition from: {self.state} to {next_state} NOT ALLOWED.')
-
-    def jump_to(self, next_state):
-        self.state = States(next_state)
+            warnings.warn(f"Invalid transition attempted from {self.state} to {next_state}", RuntimeWarning)
 
     def remove_state(self, state_to_remove):
         self.graph.remove_node(state_to_remove.value)

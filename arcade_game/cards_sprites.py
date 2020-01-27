@@ -69,6 +69,8 @@ class CardSprite(arcade.Sprite):
         if self.pressed:
             self.pressed = False
             self.selected = not self.selected
+            return True
+        return False
 
     def draw(self):
         super().draw()
@@ -164,4 +166,7 @@ class CardSpriteManager:
 
     def mouse_release(self):
         for c in self.all_cards():
-            c.mouse_release()
+            if c.mouse_release():
+                return 1
+
+        return 0

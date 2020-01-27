@@ -68,6 +68,8 @@ class ActionSprite(arcade.Sprite):
             self.pressed = False
             self.selected = not self.selected
             self.action_function()
+            return True
+        return False
 
     def draw(self):
         super().draw()
@@ -88,9 +90,11 @@ class ActionSpriteManager:
         self.parent_window = parent_window
         self.actions = {'p1': [], 'p2': []}
         self.action_indeces = {}
+        self.callbacks = [parent_window.secret_pressed, parent_window.burn_pressed, parent_window.gift_pressed,
+                          parent_window.comp_pressed]
         N = len(self.action_library)
         for idx, a in enumerate(self.action_library):
-            self.actions['p1'].append(ActionSprite(action=a, action_function=self.foo,
+            self.actions['p1'].append(ActionSprite(action=a, action_function=self.callbacks[idx],
                                                    center_x=self.parent_window.width/2 + (idx - (N-1)/2)
                                                             * self.ACTION_SPACING,
                                                    center_y=self.ACTION_HEIGHT))
@@ -122,8 +126,8 @@ class ActionSpriteManager:
         self.p2_used.append(act_str)
 
     def player_actions(self):
-        for act in self.actions['p1']:
-            yield act
+        for idx, act in enumerate(self.actions['p1']):
+            yield idx, act
 
     def opponent_actions(self):
         for act in self.actions['p2']:
@@ -131,6 +135,10 @@ class ActionSpriteManager:
 
     def foo(self):
         pass
+
+    def reset_selection(self):
+        for c in self.all_actions():
+            c.selected = False
 
     def get_selected_actions(self):
         return [act for act in self.actions['p1'] if act.selected]
@@ -150,4 +158,10 @@ class ActionSpriteManager:
 
     def mouse_release(self):
         for c in self.all_actions():
-            c.mouse_release()
+            if c.mouse_release():
+                return 1
+        return 0
+
+    def enable_all(self):
+        for i, a in self.player_actions():
+            a.enabled = True

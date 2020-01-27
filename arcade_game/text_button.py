@@ -42,6 +42,9 @@ class Button:
             self.pressed = False
             self.action_function()
 
+            return 1
+        return 0
+
     def is_click_inside(self, x, y):
         if x > self.right:
             return False
