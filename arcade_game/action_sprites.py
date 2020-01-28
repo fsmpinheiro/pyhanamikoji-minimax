@@ -46,6 +46,8 @@ class ActionSprite(arcade.Sprite):
     def used(self, value: bool):
         self._used = value
 
+        self.enabled = False
+
         if self._used:
             self.set_texture(2)
         else:
@@ -167,4 +169,5 @@ class ActionSpriteManager:
 
     def enable_all(self):
         for i, a in self.player_actions():
-            a.enabled = True
+            if not a.used:
+                a.enabled = True

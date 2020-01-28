@@ -83,12 +83,14 @@ class Game(arcade.Window):
             self.cards['p1'] = self.cards['p1'].replace(c, '', 1)
 
     def finish_button_pressed(self):
-        action_selected = [a.value for a in self.asm.get_selected_actions()]
+        action_sprites_selected = self.asm.get_selected_actions()
         cards_selected = ''.join([c.value for c in self.csm.get_selection(key='p1')])
-        valid = len(action_selected) == 1 and \
+        valid = len(action_sprites_selected) == 1 and \
                 len(cards_selected) == self.csm.selection_limit
 
-        act = action_selected[0]
+        action_sprite = action_sprites_selected[0]
+        act = action_sprite.value
+
         assert act in self.asm.action_library
 
         if valid:
@@ -100,6 +102,7 @@ class Game(arcade.Window):
                 self.cards['p1_offer'] = cards_selected
 
             # Set the action sprite to used
+            action_sprite.used = True
 
             # Apply next turn:
             # if p1 started and it's the 4th turn -> go to opponent
@@ -108,6 +111,10 @@ class Game(arcade.Window):
             self.csm.update(self.cards)
         else:
             print(f'Please select {self.csm.selection_limit} cards.')
+
+        self.asm.reset_selection()
+        self.csm.reset_selection()
+        self.csm.disable_all()
 
     def empty_area_pressed(self):
         """ Reset all selections and enable all buttons."""
