@@ -27,12 +27,12 @@ class CardSprite(arcade.Sprite):
         self.value: str = card
 
         if selection_callback is None:
-            self.selection_callback = self.print_selected
+            self.selection_callback = lambda: None
         else:
             self.selection_callback = selection_callback
 
         if deselection_callback is None:
-            self.deselection_callback = self.print_deselected
+            self.deselection_callback = lambda: None
         else:
             self.deselection_callback = deselection_callback
 
@@ -122,8 +122,8 @@ class CardSpriteManager:
     def __init__(self, parent_window: arcade.Window):
         self.parent_window = parent_window
 
-        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
-                      'p2': [], 'p2_offer': [], 'p2_placed': []}
+        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [], 'p1_secret': [],
+                      'p2': [], 'p2_offer': [], 'p2_placed': [], 'p2_secret': []}
 
         self.card_heights = {'p1': self.HAND_HEIGHT,
                              'p1_offer': self.OFFER_HEIGHT,
@@ -149,6 +149,10 @@ class CardSpriteManager:
     def enable_all(self):
         for c in self.player_cards():
             c.enabled = True
+
+    def disable_all(self):
+        for c in self.player_cards():
+            c.enabled = False
 
     def reset_selection(self):
         for c in self.all_cards():
@@ -195,26 +199,60 @@ class CardSpriteManager:
 
         return 0
 
+    def equal_spacing_x(self, N, idx):
+        return self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING
+
     def update(self, card_dict):
-        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
-                      'p2': [], 'p2_offer': [], 'p2_placed': []}
+        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [], 'p1_secret': [],
+                      'p2': [], 'p2_offer': [], 'p2_placed': [], 'p2_secret': []}
 
         for key, card_string in card_dict.items():
-            for c in card_string:
+            N = len(card_string)
+
+            for idx, c in enumerate(sorted(card_string)):
+                # Spawn the card:
+                card = CardSprite(c, 0, 0)
+                card.enabled = True
+
                 if key == 'p1':
-                    card = CardSprite(c, 0, 0, selection_callback=self.check_selection_limit,
-                                      deselection_callback=self.enable_all)
-                else:
-                    card = CardSprite(c, 0, 0)
-                    if card == 'p2':
-                        card.flipped = True
+                    x = self.equal_spacing_x(N, idx)
+                    y = self.card_heights[key]
+
+                    card.set_position(x, y)
+                    card.selection_callback = self.check_selection_limit
+                    card.deselection_callback = self.enable_all
+
+                elif key == 'p1_offer':
+                    pass
+
+                elif key == 'p1_placed':
+                    pass
+
+                elif key == 'p1_secret':
+                    x = 50
+                    y = self.parent_window.height/2 - 100
+
+                    card.set_position(x, y)
+
+                elif key == 'p2':
+                    x = self.equal_spacing_x(N, idx)
+                    y = self.card_heights[key]
+                    card.set_position(x, y)
+                    card.flipped = True
+                    card.enabled = False
+
+                elif key == 'p2_offer':
+                    pass
+
+                elif key == 'p2_placed':
+                    pass
+
+                elif key == 'p2_secret':
+                    x = 50
+                    y = self.parent_window.height / 2 + 100
+                    card.set_position(x, y)
+                    card.flipped = True
+                    card.enabled = False
 
                 self.cards[key].append(card)
 
-        for key, card_list in self.cards.items():
-            N = len(card_list)
-
-            for idx, card in enumerate(sorted(card_list)):
-                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING,
-                                  center_y=self.card_heights[key])
-                card.enabled = True

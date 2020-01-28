@@ -26,6 +26,9 @@ class ActionSprite(arcade.Sprite):
         self.action_function = action_function
         self.enabled = True
 
+        # the string of the action
+        self.value = action
+
     @property
     def enabled(self):
         return self._enabled

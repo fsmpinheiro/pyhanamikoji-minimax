@@ -32,6 +32,7 @@ class Button:
     @visible.setter
     def visible(self, value: bool):
         self._visible = value
+        self.enabled = value
 
     def mouse_press(self, x, y):
         if self.is_click_inside(x, y) and self.enabled:

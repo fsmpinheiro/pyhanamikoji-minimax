@@ -14,7 +14,7 @@ assets_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\'
 class Game(arcade.Window):
     GEISHA_SCALING = 0.25
     GEISHA_SPACING = 90
-    BRACKET_HEIGHT = 150
+    BRACKET_HEIGHT = 140
 
     def __init__(self):
         super().__init__(title='Hanamikoji', antialiasing=True, width=1000, height=900)
@@ -25,19 +25,19 @@ class Game(arcade.Window):
         self.agent = GUIAgent()
         self.deck.pull_card()
 
+        # Dictionary to store strings of card groups:
         self.cards = defaultdict(str)
-
-        self.cards['p1'] = ''.join(self.deck.pull_card() for _ in range(7))
+        self.cards['p1'] = ''.join(self.deck.pull_card() for _ in range(6))
         self.cards['p2'] = ''.join(self.deck.pull_card() for _ in range(6))
         self.cards['p1_offer'] = ''
         self.cards['p2_offer'] = ''
         self.cards['p1_placed'] = ''
         self.cards['p2_placed'] = ''
+        self.cards['p1_secret'] = ''
+        self.cards['p2_secret'] = ''
 
-        # To store all the cards sprites:
+        # To manage all the card and action prites:
         self.csm = CardSpriteManager(self)
-
-        # To store all the action sprites:
         self.asm = ActionSpriteManager(self)
 
         # To store all static sprites:
@@ -50,6 +50,7 @@ class Game(arcade.Window):
         # Finish Turn button:
         self.finish_turn_btn = TextBoxButton(text='Finish Turn', center_x=self.width - 65, center_y=45,
                                              width=120, height=60, action_function=self.finish_button_pressed)
+        self.finish_turn_btn.visible = False
 
         # Location of bracket lines:
         self.line_point_list = []
@@ -70,32 +71,54 @@ class Game(arcade.Window):
         # State of the game:
         self.started = False
 
-    def _card_changer(f):
-        """ This is a decorator for functions that change the list of cards. Updates all buttons. """
-        @wraps(f)
-        def wrapped(inst, *args, **kwargs):
-            f(inst, *args, **kwargs)
-            # inst.csm.update(inst.p1_cards, '', '', inst.p2_cards, '', '')
-            inst.csm.update(inst.cards)
-        return wrapped
-
-    @_card_changer
     def start_button_pressed(self):
         self.start_button.enabled = False
         self.start_button.visible = False
         self.started = True
 
-    @_card_changer
-    def finish_button_pressed(self):
-        check_if_cards_correct_for_this_state = True
+        self.csm.update(self.cards)
 
-        if check_if_cards_correct_for_this_state:
-            self.SM.to(max(self.allowed_transitions))
+    def remove_from_hand(self, cards_to_remove):
+        for c in cards_to_remove:
+            self.cards['p1'] = self.cards['p1'].replace(c, '', 1)
+
+    def finish_button_pressed(self):
+        action_selected = [a.value for a in self.asm.get_selected_actions()]
+        cards_selected = ''.join([c.value for c in self.csm.get_selection(key='p1')])
+        valid = len(action_selected) == 1 and \
+                len(cards_selected) == self.csm.selection_limit
+
+        act = action_selected[0]
+        assert act in self.asm.action_library
+
+        if valid:
+            self.remove_from_hand(cards_selected)
+
+            if act == 'secret':
+                self.cards['p1_secret'] = cards_selected
+            elif act == 'gift' or act == 'comp':
+                self.cards['p1_offer'] = cards_selected
+
+            # Set the action sprite to used
+
+            # Apply next turn:
+            # if p1 started and it's the 4th turn -> go to opponent
+            # if opponent started and it's the 4th turn -> finish game (reveal secret card)
+
+            self.csm.update(self.cards)
+        else:
+            print(f'Please select {self.csm.selection_limit} cards.')
 
     def empty_area_pressed(self):
         """ Reset all selections and enable all buttons."""
         self.asm.reset_selection()
         self.asm.enable_all()
+        self.csm.reset_selection()
+        self.csm.selection_limit = 7
+        self.csm.disable_all()
+
+        # Finish turn button:
+        self.finish_turn_btn.visible = False
 
     def secret_pressed(self):
         """ Go to secret choosing mode. 1 card limit"""
@@ -112,6 +135,9 @@ class Game(arcade.Window):
         self.csm.enable_all()
         self.csm.selection_limit = 1
 
+        # Finish turn button:
+        self.finish_turn_btn.visible = True
+
     def burn_pressed(self):
         """ Go to secret choosing mode. 1 card limit"""
 
@@ -126,6 +152,9 @@ class Game(arcade.Window):
         self.csm.reset_selection()
         self.csm.enable_all()
         self.csm.selection_limit = 2
+
+        # Finish turn button:
+        self.finish_turn_btn.visible = True
 
     def gift_pressed(self):
         """ Go to gift choosing mode. 3 card limit"""
@@ -142,6 +171,9 @@ class Game(arcade.Window):
         self.csm.enable_all()
         self.csm.selection_limit = 3
 
+        # Finish turn button:
+        self.finish_turn_btn.visible = True
+
     def comp_pressed(self):
         """ Go to secret choosing mode. 1 card limit"""
 
@@ -157,6 +189,9 @@ class Game(arcade.Window):
         self.csm.enable_all()
         self.csm.selection_limit = 4
 
+        # Finish turn button:
+        self.finish_turn_btn.visible = True
+
     def on_draw(self):
         arcade.start_render()
 
@@ -170,6 +205,7 @@ class Game(arcade.Window):
             self.csm.draw()
 
         self.start_button.draw()
+        self.finish_turn_btn.draw()
 
         # Texts:
         arcade.draw_text('YOU', start_x=20, start_y=30, color=arcade.color.WHITE, font_size=20)
@@ -178,6 +214,7 @@ class Game(arcade.Window):
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
 
         self.start_button.mouse_press(x, y)
+        self.finish_turn_btn.mouse_press(x, y)
         self.asm.mouse_press(x, y)
         self.csm.mouse_press(x, y)
 
@@ -186,6 +223,7 @@ class Game(arcade.Window):
         press_counter = 0
 
         press_counter += self.start_button.mouse_release()
+        press_counter += self.finish_turn_btn.mouse_release()
         press_counter += self.asm.mouse_release()
         press_counter += self.csm.mouse_release()
 
