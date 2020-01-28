@@ -8,7 +8,7 @@ class CardSprite(arcade.Sprite):
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.25
 
-    def __init__(self, card: str, center_x: int, center_y: int, callback=None):
+    def __init__(self, card: str, center_x: int, center_y: int, selection_callback=None, deselection_callback=None):
         arcade.Sprite.__init__(self, filename=self.cards_path + card + '.png',
                                center_x=center_x, center_y=center_y, scale=self.SCALE)
 
@@ -26,13 +26,21 @@ class CardSprite(arcade.Sprite):
         # Cards value:
         self.value: str = card
 
-        if callback is None:
-            self.card_selected_callback = self.print_selected
+        if selection_callback is None:
+            self.selection_callback = self.print_selected
         else:
-            self.card_selected_callback = callback
+            self.selection_callback = selection_callback
+
+        if deselection_callback is None:
+            self.deselection_callback = self.print_deselected
+        else:
+            self.deselection_callback = deselection_callback
 
     def print_selected(self):
         print(f'Card selected: {self.value}')
+
+    def print_deselected(self):
+        print(f'Card deselected: {self.value}')
 
     @property
     def enabled(self):
@@ -67,7 +75,9 @@ class CardSprite(arcade.Sprite):
         self._selected = value
 
         if value is True:
-            self.card_selected_callback()
+            self.selection_callback()
+        else:
+            self.deselection_callback()
 
     def is_click_inside(self, x, y):
         if x > self.right:
@@ -126,9 +136,6 @@ class CardSpriteManager:
 
     def check_selection_limit(self):
         N_sel = len(self.get_selection('p1'))
-        print(N_sel)
-
-        print('selection limit: ', self.selection_limit)
 
         if N_sel == self.selection_limit:
             for card in self.player_cards():
@@ -173,36 +180,6 @@ class CardSpriteManager:
             for card in card_lst:
                 yield card
 
-    def update(self, p1: str, p1_offer: str, p1_placed: str, p2: str, p2_offer: str, p2_placed: str):
-        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
-                      'p2': [], 'p2_offer': [], 'p2_placed': []}
-
-        for c in p1:
-            self.cards['p1'].append(CardSprite(c, 0, 0, callback=self.check_selection_limit))
-
-        for c in p1_offer:
-            self.cards['p1_offer'].append(CardSprite(c, 0, 0))
-
-        for c in p1_placed:
-            self.cards['p1_placed'].append(CardSprite(c, 0, 0))
-
-        for c in p2:
-            self.cards['p2'].append(CardSprite(c, 0, 0))
-
-        for c in p2_offer:
-            self.cards['p2_offer'].append(CardSprite(c, 0, 0))
-
-        for c in p2_placed:
-            self.cards['p2_placed'].append(CardSprite(c, 0, 0))
-
-        for key, card_list in self.cards.items():
-            N = len(card_list)
-
-            for idx, card in enumerate(sorted(card_list)):
-                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING,
-                                  center_y=self.card_heights[key])
-                card.enabled = True
-
     def draw(self):
         for card in self.all_cards():
             card.draw()
@@ -217,3 +194,27 @@ class CardSpriteManager:
                 return 1
 
         return 0
+
+    def update(self, card_dict):
+        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [],
+                      'p2': [], 'p2_offer': [], 'p2_placed': []}
+
+        for key, card_string in card_dict.items():
+            for c in card_string:
+                if key == 'p1':
+                    card = CardSprite(c, 0, 0, selection_callback=self.check_selection_limit,
+                                      deselection_callback=self.enable_all)
+                else:
+                    card = CardSprite(c, 0, 0)
+                    if card == 'p2':
+                        card.flipped = True
+
+                self.cards[key].append(card)
+
+        for key, card_list in self.cards.items():
+            N = len(card_list)
+
+            for idx, card in enumerate(sorted(card_list)):
+                card.set_position(center_x=self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING,
+                                  center_y=self.card_heights[key])
+                card.enabled = True
