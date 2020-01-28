@@ -138,6 +138,9 @@ class ActionSpriteManager:
         for act in self.actions['p2']:
             yield act
 
+    def get_opponent_sprite(self, index):
+        return self.actions['p2'][index]
+
     def foo(self):
         pass
 

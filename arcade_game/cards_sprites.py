@@ -114,23 +114,27 @@ class CardSprite(arcade.Sprite):
 
 class CardSpriteManager:
     HAND_HEIGHT = 170
-    OFFER_HEIGHT = 250
-    PLACED_HEIGHT = 400
+    PLACED_HEIGHT = 340
+    SECRET_HEIGHT = 350
+    OFFER_HEIGHT = 200
 
     SPACING = 100
 
     def __init__(self, parent_window: arcade.Window):
         self.parent_window = parent_window
 
-        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [], 'p1_secret': [],
-                      'p2': [], 'p2_offer': [], 'p2_placed': [], 'p2_secret': []}
+        self.cards = {'p1': [], 'p1_placed': [], 'p1_secret': [],
+                      'p2': [], 'p2_placed': [], 'p2_secret': [],
+                      'offer_gift': [], 'offer_comp': []}
 
         self.card_heights = {'p1': self.HAND_HEIGHT,
-                             'p1_offer': self.OFFER_HEIGHT,
                              'p1_placed': self.PLACED_HEIGHT,
+                             'p1_secret': self.SECRET_HEIGHT,
                              'p2': self.parent_window.height - self.HAND_HEIGHT,
-                             'p2_offer': self.parent_window.height - self.OFFER_HEIGHT,
-                             'p2_placed': self.parent_window.height - self.PLACED_HEIGHT}
+                             'p2_placed': self.parent_window.height - self.PLACED_HEIGHT,
+                             'p2_secret': self.parent_window.height - self.SECRET_HEIGHT,
+                             'offer_gift': self.parent_window.height - self.OFFER_HEIGHT,
+                             'offer_comp': self.parent_window.height - self.OFFER_HEIGHT}
 
         self.selection_limit = 7
 
@@ -160,6 +164,9 @@ class CardSpriteManager:
 
     def get_selection(self, key):
         return [card for card in self.cards[key] if card.selected]
+
+    def get_not_selection(self, key):
+        return [card for card in self.cards[key] if not card.selected]
 
     def opponent_cards(self):
         for card in self.cards['p2']:
@@ -202,57 +209,78 @@ class CardSpriteManager:
     def equal_spacing_x(self, N, idx):
         return self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING
 
+    def check_selection_gift_offer(self):
+        N_sel = len(self.get_selection('offer_gift'))
+
+        if N_sel == self.selection_limit:
+            for card in self.cards['offer_gift']:
+                if not card.selected:
+                    card.enabled = False
+
+        print('selecting gift offer cards now')
+
+    def check_selection_comp_offer(self):
+        N_sel = len(self.get_selection('offer_comp'))
+
+        if N_sel == self.selection_limit:
+            for card in self.cards['offer_comp']:
+                if not card.selected:
+                    card.enabled = False
+
+        print('selecting comp offer cards now')
+
+    def enable_offers(self):
+        for c in self.cards['offer_gift'] + self.cards['offer_comp']:
+            c.enabled = True
+
     def update(self, card_dict):
-        self.cards = {'p1': [], 'p1_offer': [], 'p1_placed': [], 'p1_secret': [],
-                      'p2': [], 'p2_offer': [], 'p2_placed': [], 'p2_secret': []}
+        self.cards = {'p1': [], 'p1_placed': [], 'p1_secret': [],
+                      'p2': [], 'p2_placed': [], 'p2_secret': [],
+                      'offer_gift': [], 'offer_comp': []}
 
         for key, card_string in card_dict.items():
             N = len(card_string)
 
             for idx, c in enumerate(sorted(card_string)):
                 # Spawn the card:
-                card = CardSprite(c, 0, 0)
+                x = self.equal_spacing_x(N, idx)
+                y = self.card_heights[key]
+                card = CardSprite(c, x, y)
                 card.enabled = True
 
                 if key == 'p1':
-                    x = self.equal_spacing_x(N, idx)
-                    y = self.card_heights[key]
-
-                    card.set_position(x, y)
                     card.selection_callback = self.check_selection_limit
                     card.deselection_callback = self.enable_all
-
-                elif key == 'p1_offer':
-                    pass
 
                 elif key == 'p1_placed':
                     pass
 
                 elif key == 'p1_secret':
                     x = 50
-                    y = self.parent_window.height/2 - 100
-
-                    card.set_position(x, y)
-
-                elif key == 'p2':
-                    x = self.equal_spacing_x(N, idx)
-                    y = self.card_heights[key]
                     card.set_position(x, y)
                     card.flipped = True
                     card.enabled = False
 
-                elif key == 'p2_offer':
-                    pass
+                elif key == 'p2':
+                    card.flipped = True
+                    card.enabled = False
 
                 elif key == 'p2_placed':
                     pass
 
                 elif key == 'p2_secret':
                     x = 50
-                    y = self.parent_window.height / 2 + 100
                     card.set_position(x, y)
                     card.flipped = True
                     card.enabled = False
+
+                elif key == 'offer_gift':
+                    card.selection_callback = self.check_selection_gift_offer
+                    card.deselection_callback = self.enable_offers
+
+                elif key == 'offer_comp':
+                    card.selection_callback = self.check_selection_comp_offer
+                    card.deselection_callback = self.enable_offers
 
                 self.cards[key].append(card)
 
