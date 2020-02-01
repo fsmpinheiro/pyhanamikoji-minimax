@@ -2,7 +2,7 @@ import arcade
 
 
 class CardSprite(arcade.Sprite):
-    cards_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\cards\\'
+    cards_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\cards\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
@@ -115,8 +115,8 @@ class CardSprite(arcade.Sprite):
 class CardSpriteManager:
     HAND_HEIGHT = 170
     PLACED_HEIGHT = 340
-    SECRET_HEIGHT = 350
-    OFFER_HEIGHT = 200
+    SECRET_HEIGHT = 340
+    OFFER_HEIGHT = 230
 
     SPACING = 100
 
@@ -142,20 +142,16 @@ class CardSpriteManager:
         N_sel = len(self.get_selection('p1'))
 
         if N_sel == self.selection_limit:
-            for card in self.player_cards():
+            for card in self.cards['p1']:
                 if not card.selected:
                     card.enabled = False
 
-    def flip_opponent(self):
-        for c in self.opponent_cards():
-            c.flipped = True
-
     def enable_all(self):
-        for c in self.player_cards():
+        for c in self.cards['p1']:
             c.enabled = True
 
     def disable_all(self):
-        for c in self.player_cards():
+        for c in self.cards['p1']:
             c.enabled = False
 
     def reset_selection(self):
@@ -167,24 +163,6 @@ class CardSpriteManager:
 
     def get_not_selection(self, key):
         return [card for card in self.cards[key] if not card.selected]
-
-    def opponent_cards(self):
-        for card in self.cards['p2']:
-            yield card
-
-    def player_cards(self):
-        for card in self.cards['p1']:
-            yield card
-
-    def selected_cards_in_hand(self):
-        for card in self.cards['p1']:
-            if card.selected:
-                yield card
-
-    def selected_cards_in_opponent_offer(self):
-        for card in self.cards['p2_offer']:
-            if card.selected:
-                yield card
 
     def all_cards(self):
         for k, card_lst in self.cards.items():
@@ -200,10 +178,10 @@ class CardSpriteManager:
             c.mouse_press(x, y)
 
     def mouse_release(self):
-        for c in self.all_cards():
+        # only the player carsd and the offer cards:
+        for c in (self.cards['p1'] + self.cards['offer_gift'] + self.cards['offer_comp']):
             if c.mouse_release():
                 return 1
-
         return 0
 
     def equal_spacing_x(self, N, idx):
@@ -212,25 +190,24 @@ class CardSpriteManager:
     def check_selection_gift_offer(self):
         N_sel = len(self.get_selection('offer_gift'))
 
-        if N_sel == self.selection_limit:
+        if N_sel == 1:
             for card in self.cards['offer_gift']:
                 if not card.selected:
                     card.enabled = False
 
-        print('selecting gift offer cards now')
-
     def check_selection_comp_offer(self):
         N_sel = len(self.get_selection('offer_comp'))
 
-        if N_sel == self.selection_limit:
+        if N_sel == 2:
             for card in self.cards['offer_comp']:
                 if not card.selected:
                     card.enabled = False
 
-        print('selecting comp offer cards now')
-
     def enable_offers(self):
-        for c in self.cards['offer_gift'] + self.cards['offer_comp']:
+        for c in self.cards['offer_gift']:
+            c.enabled = True
+
+        for c in self.cards['offer_comp']:
             c.enabled = True
 
     def update(self, card_dict):

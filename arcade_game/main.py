@@ -5,8 +5,9 @@ from arcade_game.action_sprites import ActionSpriteManager
 from arcade_game.cards_sprites import CardSpriteManager
 from arcade_game.gui_agent import GUIAgent
 from arcade_game.text_button import TextBoxButton
+from game_tools.scoring import evaluate_game
 
-assets_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\'
+assets_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\'
 
 
 class Game(arcade.Window):
@@ -57,8 +58,9 @@ class Game(arcade.Window):
         self.finish_turn_btn.visible = False
 
         # Choosing offer button:
-        self.choose_offer_btn = TextBoxButton(text='Confirm Choice', center_x=self.width - 65, center_y=self.height/2,
-                                              width=150, height=60, action_function=self.choose_offer_btn_pressed)
+        self.choose_offer_btn = TextBoxButton(text='Confirm Choice', center_x=self.width - 200,
+                                              center_y=self.height-210, width=150, height=60,
+                                              action_function=self.choose_offer_btn_pressed)
 
         # Location of bracket lines:
         self.line_point_list = []
@@ -80,9 +82,23 @@ class Game(arcade.Window):
         self.started = False
         self.turn_count = 0     # how many times the player has pressed the finish button
         self.did_player_start = None
-
         self.choosing_offer_gift = False
         self.choosing_offer_comp = False
+        self.ended = False
+
+        # Final scores:
+        self.player_score = 0
+        self.opponent_score = 0
+
+    def score_game(self):
+
+        p1_placed = self.cards['p1_placed']
+        p2_placed = self.cards['p2_placed']
+
+        p1_score, p2_score = evaluate_game(p1_cards=p1_placed, p2_cards=p2_placed)
+
+        self.player_score = p1_score
+        self.opponent_score = p2_score
 
     def start_button_player_pressed(self):
         self.did_player_start = True
@@ -93,7 +109,7 @@ class Game(arcade.Window):
 
     def start_button_opponent_pressed(self):
         self.did_player_start = False
-        self.cards['p1'] = ''.join(self.deck.pull_card() for _ in range(6))
+        self.cards['p1'] = ''.join(self.deck.pull_card() for _ in range(7))
         self.cards['p2'] = ''.join(self.deck.pull_card() for _ in range(6))
         self.start_button_pressed()
 
@@ -135,14 +151,15 @@ class Game(arcade.Window):
             self.asm.get_opponent_sprite(index=2).used = True
             self.cards['offer_gift'] = cards_selected
             self.choosing_offer_gift = True
+            self.asm.disable_all()
 
         elif action_string == 'comp':
             self.asm.get_opponent_sprite(index=3).used = True
             self.cards['offer_comp'] = cards_selected
             self.choosing_offer_comp = True
+            self.asm.disable_all()
 
-        # Update the sprites:
-        self.csm.update(card_dict=self.cards)
+        self.csm.update(self.cards)
 
         print(f'>>>> Agents chose: {action_string} with cards: {cards_selected}')
 
@@ -173,6 +190,13 @@ class Game(arcade.Window):
             self.choosing_offer_comp = False
 
             self.csm.update(self.cards)
+
+            if self.turn_count >= 4:
+                self.finish_game()
+            else:
+                self.asm.reset_selection()
+                self.asm.enable_all()
+                self.csm.reset_selection()
         else:
             print('invalid offer selection')
 
@@ -187,69 +211,88 @@ class Game(arcade.Window):
     def finish_game(self):
 
         # Reveal secret cards:
-        self.cards['p1_placed'] += self.cards['p1_secret']
+        self.cards['p1_placed'] += ''.join(self.cards['p1_secret'])
         self.cards['p1_secret'] = ''
 
         # Reveal secret cards:
-        self.cards['p2_placed'] += self.cards['p2_secret']
+        print(self.cards['p2_secret'])
+        print(self.cards['p2_placed'])
+
+        self.cards['p2_placed'] += ''.join(self.cards['p2_secret'])
         self.cards['p2_secret'] = ''
 
         self.csm.update(card_dict=self.cards)
+        self.finish_turn_btn.visible = False
+
         print(f'Game finished in state: {self.cards}')
+
+        self.score_game()
+        self.ended = True
 
     def finish_button_pressed(self):
         action_sprites_selected = self.asm.get_selected_actions()
         cards_selected = ''.join([c.value for c in self.csm.get_selection(key='p1')])
 
-        valid = len(action_sprites_selected) == 1 and \
-                len(cards_selected) == self.csm.selection_limit
+        # Check whether the player has chosen the correct number of actions and cards:
+        selection_valid = len(action_sprites_selected) == 1 and len(cards_selected) == self.csm.selection_limit
 
-        if valid:
+        if not selection_valid:
+            print('Invalid action / card selection')
+            return
 
-            action_sprite = action_sprites_selected[0]
-            act = action_sprite.value
-            self.remove_from_hand_player(cards_selected)
+        # Execute proper action based on choice:
+        action_sprite = action_sprites_selected[0]
+        act = action_sprite.value
+        self.remove_from_hand_player(cards_selected)
 
-            if act == 'secret':
-                self.cards['p1_secret'] = cards_selected
-            elif act == 'burn':
-                pass
-            elif act == 'gift':
-                cards_for_p1, cards_for_p2 = self.agent.receive_gift(triplet=cards_selected)
-                self.cards['p1_placed'] += cards_for_p1
-                self.cards['p2_placed'] += cards_for_p2
-            elif act == 'comp':
-                cards_for_p1, cards_for_p2 = self.agent.receive_comp(bundles=cards_selected)
-                self.cards['p1_placed'] += cards_for_p1
-                self.cards['p2_placed'] += cards_for_p2
+        if act == 'secret':
+            self.cards['p1_secret'] = cards_selected
 
-            # Set the action sprite to used
-            action_sprite.used = True
+        elif act == 'burn':
+            pass
 
-            # Apply next turn:
-            self.turn_count += 1
+        elif act == 'gift':
+            cards_for_p1, cards_for_p2 = self.agent.receive_gift(triplet=cards_selected)
+            self.cards['p1_placed'] += cards_for_p1
+            self.cards['p2_placed'] += cards_for_p2
 
-            # if opponent started and it's the 4th turn -> finish game (reveal secret card)
-            if self.turn_count == 4 and not self.did_player_start:
-                self.finish_game()
-            elif self.turn_count == 4 and self.did_player_start:
-                self.agent_turn()
-                self.finish_game()
+        elif act == 'comp':
+            cards_for_p1, cards_for_p2 = self.agent.receive_comp(bundles=cards_selected)
+            self.cards['p1_placed'] += cards_for_p1
+            self.cards['p2_placed'] += cards_for_p2
+
+        # Set the action sprite to used
+        action_sprite.used = True
+
+        # Apply next turn:
+        self.turn_count += 1
+
+        if self.did_player_start:
+            self.agent_turn()
+            if self.turn_count < 4:
+                self.cards['p1'] += self.deck.pull_card()
             else:
+                if not self.choosing_offer_gift and not self.choosing_offer_comp:
+                    self.finish_game()
+
+        elif not self.did_player_start:
+            if self.turn_count < 4:
                 self.agent_turn()
                 self.cards['p1'] += self.deck.pull_card()
+            else:
+                self.finish_game()
 
-            # Update the card sprites:
-            self.csm.update(self.cards)
-        else:
-            print(f'Please select {self.csm.selection_limit} cards.')
+        # Update the card sprites:
+        self.csm.update(self.cards)
 
+        # Reset everything
         self.asm.reset_selection()
         self.csm.reset_selection()
         self.csm.disable_all()
 
     def empty_area_pressed(self):
         """ Reset all selections and enable all buttons."""
+
         self.asm.reset_selection()
         self.asm.enable_all()
         self.csm.reset_selection()
@@ -348,12 +391,19 @@ class Game(arcade.Window):
 
         if self.choosing_offer_gift or self.choosing_offer_comp:
             self.choose_offer_btn.draw()
-        else:
+
+        if self.started and not self.choosing_offer_comp and not self.choosing_offer_gift and not self.ended:
             self.finish_turn_btn.draw()
 
         # Texts:
         arcade.draw_text('YOU', start_x=20, start_y=30, color=arcade.color.WHITE, font_size=20)
         arcade.draw_text('AI', start_x=20, start_y=self.height - 30, color=arcade.color.WHITE, font_size=20)
+
+        if self.ended:
+            arcade.draw_text(f'Enemy_score: {self.opponent_score}', start_x=self.width/2-200, start_y=self.height-200,
+                             color=arcade.color.WHITE, font_size=50)
+            arcade.draw_text(f'Your score: {self.player_score}', start_x=self.width/2-200, start_y=200,
+                             color=arcade.color.WHITE, font_size=50)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
 

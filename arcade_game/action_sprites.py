@@ -3,7 +3,7 @@ import arcade
 
 class ActionSprite(arcade.Sprite):
 
-    actions_path = 'C:\\Users\\PSere\\Desktop\\hanamikoji_game_assets\\actions\\'
+    actions_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\actions\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
@@ -161,11 +161,11 @@ class ActionSpriteManager:
             action.draw()
 
     def mouse_press(self, x, y):
-        for c in self.all_actions():
+        for c in self.actions['p1']:
             c.mouse_press(x, y)
 
     def mouse_release(self):
-        for c in self.all_actions():
+        for c in self.actions['p1']:
             if c.mouse_release():
                 return 1
         return 0
@@ -174,3 +174,8 @@ class ActionSpriteManager:
         for i, a in self.player_actions():
             if not a.used:
                 a.enabled = True
+
+    def disable_all(self):
+        for i, a in self.player_actions():
+            if not a.used:
+                a.enabled = False

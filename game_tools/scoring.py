@@ -26,7 +26,7 @@ def game(agent, opponent):
     return sd
 
 
-def evaluate_game(agent, opponent, verbose=False):
+def evaluate_game(p1_cards, p2_cards, verbose=False):
     if verbose:
         print('\n EVALUATION:')
 
@@ -37,8 +37,8 @@ def evaluate_game(agent, opponent, verbose=False):
     p2_geishas = 0
 
     for key, value in Deck.notation.items():
-        p1 = agent.cards_placed.count(key)
-        p2 = opponent.cards_placed.count(key)
+        p1 = p1_cards.count(key)
+        p2 = p2_cards.count(key)
 
         if p1 > p2:
             if verbose:
@@ -68,4 +68,4 @@ def evaluate_game(agent, opponent, verbose=False):
               f' >>>> >>>> {winner} has won!')
 
     score_difference = p1_points - p2_points
-    return score_difference
+    return p1_points, p2_points
