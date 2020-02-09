@@ -3,7 +3,7 @@ import arcade
 
 class ActionSprite(arcade.Sprite):
 
-    actions_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\actions\\'
+    actions_path = 'assets\\actions\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
@@ -20,8 +20,8 @@ class ActionSprite(arcade.Sprite):
         self.selected: bool = False
 
         # These are the disabled and flipped textures: KEEP ORDER
-        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_disabled.png', scale=self.SCALE))
-        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_used.png', scale=self.SCALE))
+        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_disabled.png'))
+        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_used.png'))
 
         self.action_function = action_function
         self.enabled = True

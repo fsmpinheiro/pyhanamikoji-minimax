@@ -1,7 +1,11 @@
 # hanamikoyi_ai
 Let's make an AI to play the card game hanamikoyi to see what the best strategy is.
 
-## Rules:
+## Example game:
+Run arcade_game/main.py in order to try play against a random agent.
+
+
+## Game Rules:
 Deck consists of: 2x blue twos, 2x red twos, 2x purple twos, 3x blue threes, 3x orange threes, 4x green fours, 5x pink fives:
 We can represent the deck as: 'AABBCCDDDEEEFFFFGGGGG', as not all cards and card combinations are unique.
 

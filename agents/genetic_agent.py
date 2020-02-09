@@ -6,17 +6,8 @@ from combinatoric_tools.tools import choose_from_string, all_hands
 
 CARD_DECK_SETUP = 'AABBCCDDDEEEFFFFGGGGG'
 
-# card_situations = {i: [] for i in range(2187)}
-# counter = 0
-# for n_cards in range(1, 8):
-#     for situation in set(itertools.combinations(CARD_DECK_SETUP, n_cards)):
-#         card_situations[counter] = tuple(sorted(situation))
-#         counter += 1
-
 
 class GeneticAgent(Agent):
-    # card_situations = card_situations
-    # n_situ = len(card_situations.keys())
 
     action_permutations = list(set(itertools.permutations(['secret', 'burn', 'gift', 'comp'])))
     card_types = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
@@ -41,11 +32,6 @@ class GeneticAgent(Agent):
 
         self.root_action_genes = action_genes.copy()
         self.root_secret_genes = self.secret_genes.copy()
-
-    # def find_hand_index(self):
-    #     for hand_index, situ in self.card_situations.items():
-    #         if situ == tuple(sorted(self.hand)):
-    #             return hand_index
 
     def secret(self, opponent):
 
@@ -95,25 +81,8 @@ class GeneticAgent(Agent):
         # Decide on the an action:
         action_key = self.best_perm[self.turn_counter]
 
-        # Get the input vector:
-        # idx = self.find_hand_index()
-        # input_vector = np.array([0. if idx != i else 1. for i in range(self.n_situ)])
-        #
-        # # Decide on the action:
-        # action_output = self.action_genes @ input_vector
-        #
-        # # Find the biggest one:
-        # action_choice_index = int(np.argmax(action_output))
-        # action_key = self.action_names[action_choice_index]
-
         # Do the action:
         self.actions[action_key](opponent=opponent)
-
-        # Remove the action from the options:
-        # self.action_genes[action_choice_index, :] = -1000
-        # self.actions.pop()
-
-        # print(f"{self.name} has hand: {self.hand} and chose action: {action_key}.")
 
         self.turn_counter += 1
 

@@ -7,7 +7,7 @@ from arcade_game.gui_agent import GUIAgent
 from arcade_game.text_button import TextBoxButton
 from game_tools.scoring import evaluate_game
 
-assets_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\'
+assets_path = 'assets\\'
 
 
 class Game(arcade.Window):

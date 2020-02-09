@@ -2,7 +2,7 @@ import arcade
 
 
 class CardSprite(arcade.Sprite):
-    cards_path = 'C:\\Users\\PSere\\Desktop\\side_projects\\hanamikoji_game_assets\\cards\\'
+    cards_path = 'assets\\cards\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
@@ -20,8 +20,8 @@ class CardSprite(arcade.Sprite):
 
         # These are the disabled and flipped textures: KEEP ORDER
         self.append_texture(
-            arcade.load_texture(file_name=self.cards_path + card + '_disabled' + '.png', scale=self.SCALE))
-        self.append_texture(arcade.load_texture(file_name=self.cards_path + 'cover.png', scale=self.SCALE))
+            arcade.load_texture(file_name=self.cards_path + card + '_disabled' + '.png'))
+        self.append_texture(arcade.load_texture(file_name=self.cards_path + 'cover.png'))
 
         # Cards value:
         self.value: str = card
