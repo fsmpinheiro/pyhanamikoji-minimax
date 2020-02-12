@@ -1,11 +1,16 @@
 import arcade
 from collections import defaultdict
 from game_tools.deck import Deck
-from arcade_game.action_sprites import ActionSpriteManager
-from arcade_game.cards_sprites import CardSpriteManager
-from arcade_game.gui_agent import GUIAgent
-from arcade_game.text_button import TextBoxButton
+from action_sprites import ActionSpriteManager
+from cards_sprites import CardSpriteManager
+from gui_agent import GUIAgent
+from text_button import TextBoxButton
 from game_tools.scoring import evaluate_game
+import sys
+import os
+
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+sys.path.extend(parent_dir)
 
 assets_path = 'assets\\'
 
