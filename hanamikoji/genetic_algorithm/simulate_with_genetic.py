@@ -2,7 +2,7 @@ from agents.random_agent import RandomAgent
 from agents.genetic_agent import GeneticAgent
 import numpy as np
 import matplotlib.pyplot as plt
-from genetic_algorithm.genetic import fitness_function, pairing_generator
+from hanamikoji.genetic_algorithm.genetic import fitness_function, pairing_generator
 
 POPULATION_SIZE = 200
 ELITE_SIZE = 10

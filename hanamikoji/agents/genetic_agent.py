@@ -2,7 +2,7 @@ import random
 import numpy as np
 import itertools
 from agents.base_agent import Agent
-from combinatoric_tools.tools import choose_from_string, all_hands
+from hanamikoji.combinatoric_tools.tools import choose_from_string
 
 CARD_DECK_SETUP = 'AABBCCDDDEEEFFFFGGGGG'
 

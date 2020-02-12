@@ -2,7 +2,7 @@ import arcade
 
 
 class CardSprite(arcade.Sprite):
-    cards_path = 'assets\\cards\\'
+    cards_path = 'hanamikoji\\assets\\cards\\'
 
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2

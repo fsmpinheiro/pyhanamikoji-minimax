@@ -1,4 +1,4 @@
-from game_tools.deck import Deck
+from hanamikoji.game_tools import Deck
 from agents.random_agent import RandomAgent
 from agents.genetic_agent import GeneticAgent
 

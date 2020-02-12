@@ -1,18 +1,14 @@
 import arcade
 from collections import defaultdict
-from game_tools.deck import Deck
-from action_sprites import ActionSpriteManager
-from cards_sprites import CardSpriteManager
-from gui_agent import GUIAgent
-from text_button import TextBoxButton
-from game_tools.scoring import evaluate_game
-import sys
-import os
+from hanamikoji.game_tools import Deck
+from hanamikoji.arcade_game.cards_sprites import CardSpriteManager
+from hanamikoji.arcade_game.action_sprites import ActionSpriteManager
+from hanamikoji.arcade_game.text_button import TextBoxButton
+from hanamikoji.arcade_game.gui_agent import GUIAgent
+from hanamikoji.game_tools.scoring import evaluate_game
 
-parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-sys.path.extend(parent_dir)
 
-assets_path = 'assets\\'
+assets_path = 'hanamikoji\\assets\\'
 
 
 class Game(arcade.Window):
@@ -442,13 +438,3 @@ class Game(arcade.Window):
 
             if press_counter == 0 and self.started:
                 self.empty_area_pressed()
-
-
-def main():
-    Game()
-    arcade.run()
-    return 0
-
-
-if __name__ == '__main__':
-    main()

@@ -1,7 +1,7 @@
 import random
 from agents.base_agent import Agent
-from combinatoric_tools.tools import choose_from_string, all_hands
-from combinatoric_tools.tools import get_secret_options, get_burn_options, get_gift_options, get_comp_options
+from hanamikoji.combinatoric_tools.tools import choose_from_string
+from hanamikoji.combinatoric_tools.tools import get_secret_options, get_burn_options, get_gift_options, get_comp_options
 
 CARD_DECK_SETUP = 'AABBCCDDDEEEFFFFGGGGG'
 

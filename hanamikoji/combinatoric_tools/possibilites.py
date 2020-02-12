@@ -1,5 +1,4 @@
-from combinatoric_tools.tools import *
-import pandas as pd
+from hanamikoji.combinatoric_tools.tools import *
 
 card_deck = "AABBCCDDDEEEFFFFGGGGG"
 

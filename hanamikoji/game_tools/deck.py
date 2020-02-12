@@ -1,4 +1,4 @@
-from combinatoric_tools.tools import choose_from_string
+from hanamikoji.combinatoric_tools.tools import choose_from_string
 
 
 class Deck:

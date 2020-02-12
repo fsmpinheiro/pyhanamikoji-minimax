@@ -1,6 +1,6 @@
 import random
 from agents.base_agent import Agent
-from combinatoric_tools.tools import choose_from_string
+from hanamikoji.combinatoric_tools.tools import choose_from_string
 
 
 class RandomAgent(Agent):

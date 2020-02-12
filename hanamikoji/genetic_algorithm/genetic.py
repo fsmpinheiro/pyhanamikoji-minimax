@@ -1,4 +1,4 @@
-from game_tools.scoring import game
+from hanamikoji.game_tools.scoring import game
 import numpy as np
 import random
 
