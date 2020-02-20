@@ -1,14 +1,11 @@
 import arcade
 from collections import defaultdict
-from hanamikoji.game_tools import Deck
-from hanamikoji.arcade_game.cards_sprites import CardSpriteManager
-from hanamikoji.arcade_game.action_sprites import ActionSpriteManager
-from hanamikoji.arcade_game.text_button import TextBoxButton
-from hanamikoji.arcade_game.gui_agent import GUIAgent
-from hanamikoji.game_tools.scoring import evaluate_game
-
-
-assets_path = 'hanamikoji\\assets\\'
+from game_tools import Deck
+from game_tools.scoring import evaluate_game
+from .cards_sprites import CardSpriteManager
+from .action_sprites import ActionSpriteManager
+from .text_button import TextBoxButton
+from .gui_agent import GUIAgent
 
 
 class Game(arcade.Window):
@@ -74,8 +71,9 @@ class Game(arcade.Window):
         # Load Geisha sprites:
         for idx, g in enumerate(('A', 'B', 'C', 'D', 'E', 'F', 'G')):
             x = int(self.width / 2 + (idx - 3) * self.GEISHA_SPACING)
-            geisha = arcade.Sprite(assets_path + 'cards\\' + g + '.png', scale=self.GEISHA_SCALING,
-                                                  center_x=x, center_y=self.height / 2)
+            geisha = arcade.Sprite('assets\\cards\\' + g + '.png', scale=self.GEISHA_SCALING,
+                                    center_x=x, center_y=self.height / 2)
+
             self.placed_x_locations.append(x)
             self.static_sprites.append(geisha)
 

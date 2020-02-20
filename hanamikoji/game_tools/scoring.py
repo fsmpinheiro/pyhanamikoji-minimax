@@ -1,4 +1,4 @@
-from hanamikoji.game_tools import Deck
+from .deck import Deck
 import random
 
 

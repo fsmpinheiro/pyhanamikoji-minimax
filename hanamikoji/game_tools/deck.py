@@ -1,4 +1,18 @@
-from hanamikoji.combinatoric_tools.tools import choose_from_string
+import random
+
+
+def choose_from_string(string: str, n: int):
+    """ Choose a card from a string. Returns the choice and what remains after choosing. """
+
+    assert len(string) >= n
+    choices = []
+    for _ in range(n):
+        char = random.choice(string)
+        string = string.replace(char, '', 1)
+
+        choices.append(char)
+
+    return ''.join(choices), string
 
 
 class Deck:

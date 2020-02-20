@@ -1,1 +1,1 @@
-from hanamikoji.game_tools.deck import Deck
+from .deck import Deck

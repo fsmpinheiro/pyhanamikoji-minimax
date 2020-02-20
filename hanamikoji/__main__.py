@@ -1,5 +1,5 @@
 import arcade
-from hanamikoji import arcade_game
+import arcade_game
 
 
 def main():

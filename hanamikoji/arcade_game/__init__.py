@@ -1,1 +1,1 @@
-from hanamikoji.arcade_game.main_window import Game
+from .main_window import Game

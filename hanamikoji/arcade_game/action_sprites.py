@@ -1,12 +1,9 @@
 import arcade
-import os
 
 
 class ActionSprite(arcade.Sprite):
 
-    actions_path = 'hanamikoji\\assets\\actions\\'
-    # actions_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + '\\assets\\actions\\'
-
+    actions_path = 'assets\\actions\\'
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.2
