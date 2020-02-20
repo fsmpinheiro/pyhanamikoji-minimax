@@ -11,10 +11,13 @@ class GUIAgent:
         self.turn_counter = 0
 
     def turn(self, cards_in_hand):
-        action_string = list(self.action.keys())[self.turn_counter]
-        cards_selected = self.action[action_string](cards_in_hand)
+
+        action_choice = rand.choice(list(self.action.keys()))
+        cards_selected = self.action[action_choice](cards_in_hand)
         self.turn_counter += 1
-        return action_string, cards_selected
+        self.action.pop(action_choice)
+
+        return action_choice, cards_selected
 
     def secret(self, cards_in_hand):
         return rand.choice(tuple(cards_in_hand), size=1, replace=False)

@@ -6,6 +6,7 @@ from .cards_sprites import CardSpriteManager
 from .action_sprites import ActionSpriteManager
 from .text_button import TextBoxButton
 from .gui_agent import GUIAgent
+import pprint
 
 
 class Game(arcade.Window):
@@ -103,7 +104,6 @@ class Game(arcade.Window):
         self.did_player_start = True
         self.cards['p1'] = ''.join(self.deck.pull_card() for _ in range(7))
         self.cards['p2'] = ''.join(self.deck.pull_card() for _ in range(6))
-        print('Your turn: CHOOSE ACTION.')
         self.start_button_pressed()
 
     def start_button_opponent_pressed(self):
@@ -129,7 +129,6 @@ class Game(arcade.Window):
         self.csm.disable_all()
 
     def agent_turn(self):
-        print('\n Agents turn:')
         # Pull card:
         self.cards['p2'] += self.deck.pull_card()
 
@@ -159,8 +158,6 @@ class Game(arcade.Window):
             self.asm.disable_all()
 
         self.csm.update(self.cards)
-
-        print(f'>>>> Agents chose: {action_string} with cards: {cards_selected}')
 
     def choose_offer_btn_pressed(self):
 
@@ -213,17 +210,14 @@ class Game(arcade.Window):
         self.cards['p1_placed'] += ''.join(self.cards['p1_secret'])
         self.cards['p1_secret'] = ''
 
-        # Reveal secret cards:
-        print(self.cards['p2_secret'])
-        print(self.cards['p2_placed'])
-
         self.cards['p2_placed'] += ''.join(self.cards['p2_secret'])
         self.cards['p2_secret'] = ''
 
         self.csm.update(card_dict=self.cards)
         self.finish_turn_btn.visible = False
 
-        print(f'Game finished in state: {self.cards}')
+        print(f'Game finished in state: \n')
+        pprint.pprint(self.cards)
 
         self.score_game()
         self.ended = True
@@ -236,7 +230,7 @@ class Game(arcade.Window):
         selection_valid = len(action_sprites_selected) == 1 and len(cards_selected) == self.csm.selection_limit
 
         if not selection_valid:
-            print('Invalid action / card selection')
+            print('Invalid action / card selection.')
             return
 
         # Execute proper action based on choice:
