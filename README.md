@@ -1,4 +1,4 @@
-# hanamikoyi_ai
+# hanamikoji
 This project is an implementation of the card game Hanamikoji using the python arcade game engine. 
 The game is set up to play against an AI.
 In the future advanced AI can be developed to compete against each other and one can attempt to play against them.
@@ -8,15 +8,27 @@ In the future advanced AI can be developed to compete against each other and one
 Clone the repository:
 
     git clone https://github.com/Speterius/hanamikoji.git
+    cd hanamikoji
  
-Activate your virtual environment
+Make a virtual environment (python 3):
+
+    python -m venv venv
+    
+Activate your virtual environment:
+
+    source venv/bin/activate
+
+Or on Windows:
+
+    venv\scripts\activate
+
+Install the required packages:
 
     pip install -r requiremens.txt
     
 Run the game using: 
 
     python hanamikoji
-
 
 ## Game Rules:
 Deck consists of: 2x blue twos, 2x red twos, 2x purple twos, 3x blue threes, 3x orange threes, 4x green fours, 5x pink fives:
