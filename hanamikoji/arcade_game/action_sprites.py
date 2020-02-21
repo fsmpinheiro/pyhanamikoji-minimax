@@ -1,15 +1,14 @@
 import arcade
+import os
 
 
 class ActionSprite(arcade.Sprite):
-
-    actions_path = 'assets\\actions\\'
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.2
 
     def __init__(self, action: str, center_x: float, center_y: float, action_function):
-        arcade.Sprite.__init__(self, filename=self.actions_path+action+'.png',
+        arcade.Sprite.__init__(self, filename=os.path.join('assets', 'actions', action+'.png'),
                                center_x=center_x, center_y=center_y, scale=self.SCALE)
 
         # These booleans control clickability, texture display and selection:
@@ -19,8 +18,8 @@ class ActionSprite(arcade.Sprite):
         self.selected: bool = False
 
         # These are the disabled and flipped textures: KEEP ORDER
-        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_disabled.png'))
-        self.append_texture(arcade.load_texture(file_name=self.actions_path+action+'_used.png'))
+        self.append_texture(arcade.load_texture(file_name=os.path.join('assets', 'actions', action+'_disabled.png')))
+        self.append_texture(arcade.load_texture(file_name=os.path.join('assets', 'actions', action+'_used.png')))
 
         self.action_function = action_function
         self.enabled = True

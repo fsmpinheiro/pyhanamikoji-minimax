@@ -1,3 +1,4 @@
+import os
 import arcade
 from collections import defaultdict
 from game_tools import Deck
@@ -72,7 +73,7 @@ class Game(arcade.Window):
         # Load Geisha sprites:
         for idx, g in enumerate(('A', 'B', 'C', 'D', 'E', 'F', 'G')):
             x = int(self.width / 2 + (idx - 3) * self.GEISHA_SPACING)
-            geisha = arcade.Sprite('assets\\cards\\' + g + '.png', scale=self.GEISHA_SCALING,
+            geisha = arcade.Sprite(os.path.join('assets', 'cards', g+'.png'), scale=self.GEISHA_SCALING,
                                     center_x=x, center_y=self.height / 2)
 
             self.placed_x_locations.append(x)

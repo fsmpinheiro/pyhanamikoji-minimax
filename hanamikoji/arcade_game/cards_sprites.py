@@ -1,15 +1,14 @@
 import arcade
+import os
 
 
 class CardSprite(arcade.Sprite):
-    cards_path = 'assets\\cards\\'
-
     HIGHLIGHT_COLOR = arcade.color.WHITE
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.25
 
     def __init__(self, card: str, center_x: int, center_y: int, selection_callback=None, deselection_callback=None):
-        arcade.Sprite.__init__(self, filename=self.cards_path + card + '.png',
+        arcade.Sprite.__init__(self, filename=os.path.join('assets', 'cards', card + '.png'),
                                center_x=center_x, center_y=center_y, scale=self.SCALE)
 
         # These booleans control clickability, texture display and selection:
@@ -20,8 +19,8 @@ class CardSprite(arcade.Sprite):
 
         # These are the disabled and flipped textures: KEEP ORDER
         self.append_texture(
-            arcade.load_texture(file_name=self.cards_path + card + '_disabled' + '.png'))
-        self.append_texture(arcade.load_texture(file_name=self.cards_path + 'cover.png'))
+            arcade.load_texture(file_name=os.path.join('assets', 'cards', card + '_disabled' + '.png')))
+        self.append_texture(arcade.load_texture(file_name=os.path.join('assets', 'cards', 'cover.png')))
 
         # Cards value:
         self.value: str = card
