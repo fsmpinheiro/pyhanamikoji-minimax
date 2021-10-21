@@ -13,5 +13,5 @@ pyglet-ffmpeg2==0.1.17
 pymunk==5.7.0
 pyparsing==2.4.7
 pytiled-parser==0.9.4a3
-PyYAML==5.3.1
+PyYAML==5.4
 Shapely==1.7.1
