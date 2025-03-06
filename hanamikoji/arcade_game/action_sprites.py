@@ -8,7 +8,7 @@ class ActionSprite(arcade.Sprite):
     SCALE = 0.2
 
     def __init__(self, action: str, center_x: float, center_y: float, action_function):
-        arcade.Sprite.__init__(self, filename=os.path.join('assets', 'actions', action+'.png'),
+        arcade.Sprite.__init__(self, filename=os.path.join('assets', 'actions', action + '.png'),
                                center_x=center_x, center_y=center_y, scale=self.SCALE)
 
         # These booleans control clickability, texture display and selection:
