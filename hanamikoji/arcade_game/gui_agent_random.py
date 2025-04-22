@@ -1,7 +1,7 @@
 import numpy.random as rand
 
-
-class GUIAgent:
+# Classe usa a aleatoriedade como heuristica
+class GUIAgentRandom:
     def __init__(self):
         self.action = {'secret': self.secret,
                        'burn': self.burn,
@@ -10,8 +10,9 @@ class GUIAgent:
 
         self.turn_counter = 0
 
-    def turn(self, cards_in_hand):
 
+    # Agent representa o oponente
+    def turn(self, cards_in_hand):
         action_choice = rand.choice(list(self.action.keys()))
         cards_selected = self.action[action_choice](cards_in_hand)
         self.turn_counter += 1
@@ -22,11 +23,12 @@ class GUIAgent:
     def secret(self, cards_in_hand):
         return rand.choice(tuple(cards_in_hand), size=1, replace=False)
 
+
     def burn(self, cards_in_hand):
         return rand.choice(tuple(cards_in_hand), size=2, replace=False)
 
-    def gift(self, cards_in_hand):
-        return rand.choice(tuple(cards_in_hand), size=3, replace=False)
+    def gift(self, card_in_hand):
+        return rand.choice(tuple(card_in_hand), size=3, replace=False)
 
     def comp(self, cards_in_hand):
         return rand.choice(tuple(cards_in_hand), size=4, replace=False)
