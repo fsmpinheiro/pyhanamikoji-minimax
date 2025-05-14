@@ -7,22 +7,33 @@ class CardSprite(arcade.Sprite):
     HIGHLIGHT_WIDTH = 2
     SCALE = 0.25
 
-    def __init__(self, card: str, center_x: int, center_y: int, selection_callback=None, deselection_callback=None):
-        arcade.Sprite.__init__(self, filename=os.path.join('assets', 'cards', card + '.png'),
-                               center_x=center_x, center_y=center_y, scale=self.SCALE)
+    def __init__(self, card:str, center_x: int, center_y: int, selection_callback=None, deselection_callback=None):
+        # filename=os.path.join('assets', 'cards', card + '.png') DIRETORIO E NOME DE CADA CARD
+        """
+        texture 0: gueishas
+        texture 1: gueishas_disabled
+        texture 2: itens_cards
+        texture 3: static_cover
+        """
 
-        # These booleans control clickability, texture display and selection:
-        self._enabled: bool = False
+
+        arcade.Sprite.__init__(self, filename=os.path.join('.', 'assets', 'cards', card + '.png'),
+                               center_x= center_x, center_y= center_y, scale=self.SCALE )
+
+        # These booleans control click-ability, texture display and selection:
+        self._enabled = None
+        self._enable: bool = False
         self._flipped: bool = False
         self._selected: bool = False
         self.pressed: bool = False
 
-        # These are the disabled and flipped textures: KEEP ORDER
+        # These are disabled and flipped textures: KEEP ORDER
         self.append_texture(
-            arcade.load_texture(file_name=os.path.join('assets', 'cards', card + '_disabled' + '.png')))
-        self.append_texture(arcade.load_texture(file_name=os.path.join('assets', 'cards', 'cover.png')))
+            arcade.load_texture(file_name=os.path.join('.', 'assets', 'cards', card + '_disabled' + '.png')))
+        self.append_texture(arcade.load_texture(file_name=os.path.join('.', 'assets', 'cards', 'cover.png')))
+        # self.append_texture(arcade.load_texture(file_name=os.path.join('.', 'assets', 'itens', card + '2_item' + '.jpg')))
 
-        # Cards value:
+        #Cards value:
         self.value: str = card
 
         if selection_callback is None:
@@ -112,24 +123,24 @@ class CardSprite(arcade.Sprite):
 
 
 class CardSpriteManager:
-    HAND_HEIGHT = 170
+    HAND_HEIGHT   = 170
     PLACED_HEIGHT = 340
     SECRET_HEIGHT = 340
-    OFFER_HEIGHT = 230
+    OFFER_HEIGHT  = 250
 
     SPACING = 100
 
     def __init__(self, parent_window: arcade.Window):
         self.parent_window = parent_window
 
-        self.cards = {'p1': [], 'p1_placed': [], 'p1_secret': [],
-                      'p2': [], 'p2_placed': [], 'p2_secret': [],
+        self.cards = {'player1': [], 'p1_placed': [], 'p1_secret': [],
+                      'player2': [], 'p2_placed': [], 'p2_secret': [],
                       'offer_gift': [], 'offer_comp': []}
 
-        self.card_heights = {'p1': self.HAND_HEIGHT,
+        self.card_heights = {'player1': self.HAND_HEIGHT,
                              'p1_placed': self.PLACED_HEIGHT,
                              'p1_secret': self.SECRET_HEIGHT,
-                             'p2': self.parent_window.height - self.HAND_HEIGHT,
+                             'player2': self.parent_window.height - self.HAND_HEIGHT,
                              'p2_placed': self.parent_window.height - self.PLACED_HEIGHT,
                              'p2_secret': self.parent_window.height - self.SECRET_HEIGHT,
                              'offer_gift': self.parent_window.height - self.OFFER_HEIGHT,
@@ -138,19 +149,19 @@ class CardSpriteManager:
         self.selection_limit = 7
 
     def check_selection_limit(self):
-        N_sel = len(self.get_selection('p1'))
+        n_sel = len(self.get_selection('player1'))
 
-        if N_sel == self.selection_limit:
-            for card in self.cards['p1']:
+        if n_sel == self.selection_limit:
+            for card in self.cards['player1']:
                 if not card.selected:
                     card.enabled = False
 
     def enable_all(self):
-        for c in self.cards['p1']:
+        for c in self.cards['player1']:
             c.enabled = True
 
     def disable_all(self):
-        for c in self.cards['p1']:
+        for c in self.cards['player1']:
             c.enabled = False
 
     def reset_selection(self):
@@ -174,11 +185,11 @@ class CardSpriteManager:
 
     def mouse_press(self, x, y):
         for c in self.all_cards():
-            c.mouse_press(x, y)
+            c.mouse_press(x,y)
 
     def mouse_release(self):
-        # only the player carsd and the offer cards:
-        for c in (self.cards['p1'] + self.cards['offer_gift'] + self.cards['offer_comp']):
+        # only the player cards and the offer cards:
+        for c in (self.cards['player1'] + self.cards['offer_gift'] + self.cards['offer_comp']):
             if c.mouse_release():
                 return 1
         return 0
@@ -187,17 +198,17 @@ class CardSpriteManager:
         return self.parent_window.width / 2 + (idx - (N - 1) / 2) * self.SPACING
 
     def check_selection_gift_offer(self):
-        N_sel = len(self.get_selection('offer_gift'))
+        n_sel = len(self.get_selection('offer_gift'))
 
-        if N_sel == 1:
+        if n_sel == 1:
             for card in self.cards['offer_gift']:
                 if not card.selected:
                     card.enabled = False
 
     def check_selection_comp_offer(self):
-        N_sel = len(self.get_selection('offer_comp'))
+        n_sel = len(self.get_selection('offer_comp'))
 
-        if N_sel == 2:
+        if n_sel == 2:
             for card in self.cards['offer_comp']:
                 if not card.selected:
                     card.enabled = False
@@ -209,10 +220,11 @@ class CardSpriteManager:
         for c in self.cards['offer_comp']:
             c.enabled = True
 
+
     def update(self, card_dict):
-        self.cards = {'p1': [], 'p1_placed': [], 'p1_secret': [],
-                      'p2': [], 'p2_placed': [], 'p2_secret': [],
-                      'offer_gift': [], 'offer_comp': []}
+        self.cards = {'player1': [], 'p1_placed': [], 'p1_secret': [],
+                      'player2': [], 'p2_placed': [], 'p2_secret': [],
+                      'offer_gift': [], 'offer_comp': [] }
 
         for key, card_string in card_dict.items():
             N = len(card_string)
@@ -224,7 +236,7 @@ class CardSpriteManager:
                 card = CardSprite(c, x, y)
                 card.enabled = True
 
-                if key == 'p1':
+                if key == 'player1':
                     card.selection_callback = self.check_selection_limit
                     card.deselection_callback = self.enable_all
 
@@ -237,7 +249,7 @@ class CardSpriteManager:
                     card.flipped = True
                     card.enabled = False
 
-                elif key == 'p2':
+                elif key == 'player2':
                     card.flipped = True
                     card.enabled = False
 
@@ -259,4 +271,3 @@ class CardSpriteManager:
                     card.deselection_callback = self.enable_offers
 
                 self.cards[key].append(card)
-
